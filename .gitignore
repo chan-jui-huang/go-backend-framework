@@ -2,4 +2,5 @@
 bin
 .env
 .env.dev
+.env.production
 .air.toml
