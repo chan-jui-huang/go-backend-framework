@@ -94,6 +94,7 @@ General guidance:
 - Use Make targets with environment loaded from `.env`: `make mysql-migration args="up"`, `make pgsql-migration args="up"`, `make sqlite-migration args="up"`, or `make clickhouse-migration args="up"`.
 - Ensure relevant `DB_*` variables are set for the target database.
 - Keep migrations idempotent and reversible; document non-trivial data movements.
+- Migration filenames MUST use a timestamp reflecting the actual creation time; generate a fresh `YYYYMMDDhhmmss` prefix when the file is added.
 
 ## Security & Configuration
 - Never commit secrets. Place credentials in `storage/...` as described in the README.
