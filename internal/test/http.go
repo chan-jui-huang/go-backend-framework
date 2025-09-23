@@ -16,7 +16,7 @@ type httpHandler struct {
 
 var HttpHandler *httpHandler
 
-func NewHttpHandler() *httpHandler {
+func newHttpHandler(handlerFuncs ...gin.HandlerFunc) *httpHandler {
 	engine, err := pkgHttp.NewEngine()
 	if err != nil {
 		panic(err)
@@ -26,6 +26,9 @@ func NewHttpHandler() *httpHandler {
 		engine: engine,
 	}
 	handler.AttachGlobalMiddleware()
+	if len(handlerFuncs) > 0 {
+		handler.engine.Use(handlerFuncs...)
+	}
 	routers := []route.Router{
 		route.NewApiRouter(handler.engine),
 		route.NewSwaggerRouter(handler.engine),
@@ -35,6 +38,10 @@ func NewHttpHandler() *httpHandler {
 	}
 
 	return handler
+}
+
+func NewHttpHandler() *httpHandler {
+	return newHttpHandler()
 }
 
 func (handler *httpHandler) AttachGlobalMiddleware() {
@@ -71,4 +78,15 @@ func AddCsrfToken(req *http.Request) {
 
 func AddBearerToken(req *http.Request, token string) {
 	req.Header.Set("Authorization", token)
+}
+
+func EnableMiddleware(handlerFuncs ...gin.HandlerFunc) func() {
+	original := HttpHandler
+	handler := newHttpHandler(handlerFuncs...)
+
+	HttpHandler = handler
+
+	return func() {
+		HttpHandler = original
+	}
 }
