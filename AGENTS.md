@@ -45,6 +45,7 @@ This document guides AI agents and contributors working in this repository. It d
 - Reuse established helper patterns (e.g., response builders in `internal/http/response`) rather than handcrafting JSON payloads.
 - Respect the `jsoniter` build tag where the Makefile enables it.
 - Follow directory-local conventions and keep reusable code in `internal/pkg/`; leave HTTP wiring and other application layers under `internal/`.
+- API route paths must use kebab case (e.g., `pet-store`).
 
 ### Example: indentation must use tabs
 ```golang
