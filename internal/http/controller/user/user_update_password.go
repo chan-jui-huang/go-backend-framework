@@ -25,7 +25,7 @@ type UserUpdatePasswordRequest struct {
 // @produce json
 // @param X-XSRF-TOKEN header string true "csrf token"
 // @param Authorization header string true "bearer token"
-// @param request body user.UserUpdatePasswordRequest true "update user"
+// @param request body user.UserUpdatePasswordRequest true " "
 // @success 204 "no content"
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"

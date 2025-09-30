@@ -29,7 +29,7 @@ type UserRoleUpdateRequest struct {
 // @produce json
 // @param X-XSRF-TOKEN header string true "csrf token"
 // @param Authorization header string true "bearer token"
-// @param request body user.UserRoleUpdateRequest true "update user role"
+// @param request body user.UserRoleUpdateRequest true " "
 // @success 200 {object} response.Response{data=user.UserData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed), 400-005(permission is repeat)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"

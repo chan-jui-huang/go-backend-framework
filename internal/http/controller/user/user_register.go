@@ -26,7 +26,7 @@ type UserRegisterRequest struct {
 // @accept json
 // @produce json
 // @param X-XSRF-TOKEN header string true "csrf token"
-// @param request body user.UserRegisterRequest true "register user"
+// @param request body user.UserRegisterRequest true " "
 // @success 200 {object} response.Response{data=user.TokenData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"

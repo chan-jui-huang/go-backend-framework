@@ -612,7 +612,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: delete permissions
+      - description: ' '
         in: body
         name: request
         required: true
@@ -650,7 +650,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: search permissions
+      - description: ' '
         in: body
         name: request
         required: true
@@ -700,7 +700,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: create permission
+      - description: ' '
         in: body
         name: request
         required: true
@@ -800,7 +800,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: update permission
+      - description: ' '
         in: body
         name: request
         required: true
@@ -894,7 +894,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: delete roles
+      - description: ' '
         in: body
         name: request
         required: true
@@ -932,7 +932,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: search roles
+      - description: ' '
         in: body
         name: request
         required: true
@@ -982,7 +982,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: create role
+      - description: ' '
         in: body
         name: request
         required: true
@@ -1038,7 +1038,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: update role
+      - description: ' '
         in: body
         name: request
         required: true
@@ -1089,7 +1089,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: update user role
+      - description: ' '
         in: body
         name: request
         required: true
@@ -1150,7 +1150,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: update user
+      - description: ' '
         in: body
         name: request
         required: true
@@ -1192,7 +1192,7 @@ paths:
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: login user
+      - description: ' '
         in: body
         name: request
         required: true
@@ -1276,7 +1276,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: update user
+      - description: ' '
         in: body
         name: request
         required: true
@@ -1311,7 +1311,7 @@ paths:
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: register user
+      - description: ' '
         in: body
         name: request
         required: true
