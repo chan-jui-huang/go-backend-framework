@@ -130,7 +130,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "search permissions",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -210,7 +210,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "create permission",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -297,7 +297,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "delete permissions",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -500,7 +500,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "update permission",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -575,7 +575,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "search roles",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -655,7 +655,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "create role",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -742,7 +742,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "delete roles",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -816,7 +816,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "update role",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -898,7 +898,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "update user role",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -995,7 +995,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "update user",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1064,7 +1064,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "login user",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1200,7 +1200,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "update user",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1254,7 +1254,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "register user",
+                        "description": " ",
                         "name": "request",
                         "in": "body",
                         "required": true,

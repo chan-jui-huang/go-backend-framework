@@ -26,7 +26,7 @@ type PermissionDeleteRequest struct {
 // @param X-XSRF-TOKEN header string true "csrf token"
 // @param Authorization header string true "bearer token"
 // @param id path string true "id"
-// @param request body permission.PermissionDeleteRequest true "delete permissions"
+// @param request body permission.PermissionDeleteRequest true " "
 // @success 204 "no content"
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"
