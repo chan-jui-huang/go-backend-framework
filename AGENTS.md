@@ -106,6 +106,7 @@ General guidance:
 - Follow Conventional Commits (`feat(scope): ...`, `fix(scope): ...`, `chore: ...`, `docs: ...`, `refactor: ...`, etc.).
 - Keep commits focused; include related migrations or Swagger updates in the same commit when relevant.
 - Before opening a PR, run `make linter` and `make test`, summarize behavioral changes, link relevant issues, and attach API diffs or screenshots when endpoints or docs change.
+- When drafting commit messages, combine the diff of staged files with any relevant AI agent conversation tied to those changes; if no conversation applies, rely on the staged diff alone.
 
 ## Helper CLIs (under `cmd/kit`)
 - `jwt`: Issue and inspect JWTs for local/dev.
