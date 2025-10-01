@@ -16,7 +16,7 @@ import (
 // @produce json
 // @param X-XSRF-TOKEN header string true "csrf token"
 // @param Authorization header string true "bearer token"
-// @success 204 "no content"
+// @success 204
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"

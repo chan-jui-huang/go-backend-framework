@@ -25,7 +25,7 @@ type RoleDeleteRequest struct {
 // @param Authorization header string true "bearer token"
 // @param id path string true "id"
 // @param request body permission.RoleDeleteRequest true " "
-// @success 204 "no content"
+// @success 204
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"

@@ -308,7 +308,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "no content"
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "code: 400-001(Bad Request), 400-002(request validation failed)",
@@ -366,7 +366,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "no content"
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "code: 400-001(Bad Request)",
@@ -753,7 +753,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "no content"
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "code: 400-001(Bad Request), 400-002(request validation failed)",
@@ -1211,7 +1211,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "no content"
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "code: 400-001(Bad Request), 400-002(request validation failed)",
