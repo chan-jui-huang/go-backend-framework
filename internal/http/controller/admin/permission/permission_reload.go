@@ -14,8 +14,8 @@ import (
 // @tags admin-permission
 // @accept json
 // @produce json
-// @param X-XSRF-TOKEN header string true "csrf token"
-// @param Authorization header string true "bearer token"
+// @param X-XSRF-TOKEN header string true " "
+// @param Authorization header string true " "
 // @success 204
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"

@@ -19,8 +19,8 @@ type PermissionGetData struct {
 // @tags admin-permission
 // @accept json
 // @produce json
-// @param Authorization header string true "bearer token"
-// @param id path string true "id"
+// @param Authorization header string true " "
+// @param id path string true " "
 // @success 200 {object} response.Response{data=permission.PermissionGetData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"

@@ -30,9 +30,9 @@ type RoleUpdateRequest struct {
 // @tags admin-permission
 // @accept json
 // @produce json
-// @param X-XSRF-TOKEN header string true "csrf token"
-// @param Authorization header string true "bearer token"
-// @param id path string true "id"
+// @param X-XSRF-TOKEN header string true " "
+// @param Authorization header string true " "
+// @param id path string true " "
 // @param request body permission.RoleUpdateRequest true " "
 // @success 200 {object} response.Response{data=permission.RoleData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"
