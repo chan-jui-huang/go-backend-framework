@@ -29,7 +29,7 @@ type PermissionSearchData struct {
 // @tags admin-permission
 // @accept json
 // @produce json
-// @param Authorization header string true "bearer token"
+// @param Authorization header string true " "
 // @param request body permission.PermissionSearchRequest true " "
 // @success 200 {object} response.Response{data=permission.PermissionSearchData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"

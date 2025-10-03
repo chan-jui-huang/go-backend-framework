@@ -29,7 +29,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -124,7 +124,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -197,14 +197,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -277,21 +277,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": " ",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -351,14 +351,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -409,14 +409,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": " ",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -480,21 +480,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": " ",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -569,7 +569,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -642,14 +642,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -722,21 +722,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": " ",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -796,21 +796,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": " ",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -885,14 +885,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -982,14 +982,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -1058,7 +1058,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
@@ -1127,7 +1127,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -1187,14 +1187,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "bearer token",
+                        "description": " ",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -1248,7 +1248,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "csrf token",
+                        "description": " ",
                         "name": "X-XSRF-TOKEN",
                         "in": "header",
                         "required": true

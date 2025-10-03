@@ -14,7 +14,7 @@ import (
 // @tags user
 // @accept json
 // @produce json
-// @param Authorization header string true "bearer token"
+// @param Authorization header string true " "
 // @success 200 {object} response.Response{data=UserData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request)"
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"

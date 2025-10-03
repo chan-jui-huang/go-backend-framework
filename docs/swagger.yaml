@@ -538,7 +538,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -597,17 +597,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
         type: string
-      - description: id
+      - description: ' '
         in: path
         name: id
         required: true
@@ -645,7 +645,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -690,12 +690,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -741,12 +741,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
         type: string
-      - description: id
+      - description: ' '
         in: path
         name: id
         required: true
@@ -785,17 +785,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
         type: string
-      - description: id
+      - description: ' '
         in: path
         name: id
         required: true
@@ -841,12 +841,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -879,17 +879,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
         type: string
-      - description: id
+      - description: ' '
         in: path
         name: id
         required: true
@@ -927,7 +927,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -972,12 +972,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -1023,17 +1023,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
         type: string
-      - description: id
+      - description: ' '
         in: path
         name: id
         required: true
@@ -1079,12 +1079,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -1140,12 +1140,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -1187,7 +1187,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
@@ -1230,7 +1230,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -1266,12 +1266,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true
         type: string
-      - description: bearer token
+      - description: ' '
         in: header
         name: Authorization
         required: true
@@ -1306,7 +1306,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: csrf token
+      - description: ' '
         in: header
         name: X-XSRF-TOKEN
         required: true

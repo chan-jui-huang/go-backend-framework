@@ -32,8 +32,8 @@ type PermissionCreateData struct {
 // @tags admin-permission
 // @accept json
 // @produce json
-// @param X-XSRF-TOKEN header string true "csrf token"
-// @param Authorization header string true "bearer token"
+// @param X-XSRF-TOKEN header string true " "
+// @param Authorization header string true " "
 // @param request body permission.PermissionCreateRequest true " "
 // @success 200 {object} response.Response{data=permission.PermissionCreateData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"

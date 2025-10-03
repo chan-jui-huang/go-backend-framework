@@ -29,7 +29,7 @@ type HttpApiSearchData struct {
 // @tags admin-http-api
 // @accept json
 // @produce json
-// @param Authorization header string true "bearer token"
+// @param Authorization header string true " "
 // @param "query string" query httpapi.HttpApiSearchRequest true " "
 // @success 200 {object} response.Response{data=httpapi.HttpApiSearchData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed)"

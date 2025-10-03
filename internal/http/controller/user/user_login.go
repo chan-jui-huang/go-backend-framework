@@ -25,7 +25,7 @@ type UserLoginRequest struct {
 // @tags user
 // @accept json
 // @produce json
-// @param X-XSRF-TOKEN header string true "csrf token"
+// @param X-XSRF-TOKEN header string true " "
 // @param request body user.UserLoginRequest true " "
 // @success 200 {object} response.Response{data=user.TokenData}
 // @failure 400 {object} response.ErrorResponse "code: 400-001(Bad Request), 400-002(request validation failed), 400-003(email is wrong), 400-004(password is wrong)"
