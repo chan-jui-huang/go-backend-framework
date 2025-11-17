@@ -4,3 +4,4 @@ bin
 .env.dev
 .env.production
 .air.toml
+.claude/settings.local.json
