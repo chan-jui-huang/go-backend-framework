@@ -27,6 +27,112 @@ This document guides AI agents and contributors working in this repository. It d
 - Docs: Swagger annotations generate specs in `docs/`.
 - Scheduling: Cron-style background tasks.
 
+## Core Architecture Concepts
+
+**Foundation:** The framework is built on **[go-backend-package](https://github.com/chan-jui-huang/go-backend-package)** with 12 modular packages and zero cross-dependencies. For comprehensive architectural details, refer to: **[go-backend-package CLAUDE.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/CLAUDE.md)**
+
+### Dual-Registry System
+- **Config Registry**: YAML configuration with environment variable expansion (`${VAR_NAME}`)
+- **Service Registry**: Initialized service instances accessed via `service.Registry.Get(key)`
+
+### Bootstrap Sequence
+
+```
+loadEnv() → bootConfig() → BeforeExecute() → Execute() → AfterExecute()
+                           [Registrar Boot() + Register()]
+```
+
+### Application Lifecycle Phases (pkg/app)
+
+| Phase | Type | Blocking | Purpose |
+|-------|------|----------|---------|
+| STARTING | Sequential | Yes | Pre-startup setup and initialization |
+| EXECUTION | Goroutine | No | Main application logic runs here |
+| STARTED | Sequential | Yes | Post-startup hooks and callbacks |
+| SIGNALS | Goroutines | Yes | OS signal handling for graceful shutdown |
+| ASYNC | Goroutines | No | Background tasks and scheduled jobs |
+| TERMINATED | Sequential | Yes | Cleanup and resource release before exit |
+
+See `cmd/app/main.go` for callback registration examples.
+
+### Key Architectural Patterns
+
+| Pattern | Purpose |
+|---------|---------|
+| **Registrar Pattern** | Modular initialization via `Boot()` + `Register()` methods |
+| **Dependency Injection** | Services registered and retrieved via Service Registry |
+| **Configuration Management** | YAML + `.env` file support with variable expansion |
+| **Database Layer** | Goose migrations + GORM ORM wrapper for type-safe operations |
+| **Authentication** | Ed25519 JWT (quantum-resistant) generated via `./bin/jwt` |
+| **Authorization** | Casbin RBAC policies seeded via `cmd/kit/permission_seeder` |
+| **Logging** | Zap structured logging with rotation to `storage/log/` |
+
+## Business Logic Layer Architecture
+
+### Separation of Concerns
+This framework enforces a strict separation between business logic and presentation/interface layers:
+
+- **`internal/pkg/`**: Contains all reusable business logic that can be invoked by any interface layer (HTTP APIs, schedulers, CLI commands, etc.). Functions here are pure business operations that handle data manipulation, database transactions, and domain-specific logic.
+
+- **`internal/http/`**: Contains HTTP-specific handlers, middleware, routing, and request/response structures. Controllers in this layer orchestrate HTTP interactions but delegate actual business operations to `internal/pkg/`.
+
+- **Other Interface Layers**: Schedulers (`internal/scheduler/`), CLI commands (`cmd/kit/`), and any future interfaces (gRPC, WebSocket, etc.) should similarly call functions from `internal/pkg/` rather than duplicating logic.
+
+### API Development Workflow
+
+When developing a new API endpoint, follow this mandatory pattern:
+
+1. **Business Logic First**:
+   - Check if the required business logic exists in `internal/pkg/<domain>/`
+   - If not, create or extend functions in `internal/pkg/<domain>/` first
+   - Example: For user operations, add functions to `internal/pkg/user/user.go`
+   - Keep these functions framework-agnostic and reusable
+
+2. **Controller Implementation**:
+   - Create or extend handler files under `internal/http/controller/<area>/`
+   - Controllers should ONLY:
+     - Validate HTTP requests
+     - Call business logic from `internal/pkg/`
+     - Format HTTP responses
+   - Never put business logic directly in controllers
+
+3. **Testing Requirements**:
+   - Write comprehensive tests for all controller return scenarios
+   - Test coverage must include:
+     - Success case (200 OK with expected data)
+     - All error cases (validation failures, authentication/authorization failures, business logic errors)
+     - Edge cases and boundary conditions
+   - Reference existing tests in `internal/http/controller/**/*_test.go` for patterns
+   - Example: `internal/http/controller/user/user_register_test.go` demonstrates testing multiple return paths
+
+### Example Pattern
+
+**Bad** - Business logic in controller:
+```go
+func CreateUser(c *gin.Context) {
+    // DON'T: Database operations directly in controller
+    db.Table("users").Create(&user)
+}
+```
+
+**Good** - Calls business logic from internal/pkg:
+```go
+func CreateUser(c *gin.Context) {
+    // DO: Delegate to business logic layer
+    if err := user.Create(database.NewTx(), u); err != nil {
+        // Handle error response
+    }
+    // Return success response
+}
+```
+
+### Benefits of This Architecture
+
+- **Reusability**: Business logic in `internal/pkg/` can be called from APIs, schedulers, CLI tools, or future interfaces
+- **Testability**: Business logic can be unit tested independently from HTTP concerns
+- **Maintainability**: Changes to business rules are centralized in `internal/pkg/`
+- **Consistency**: All interfaces use the same validated business logic
+
 ## Build, Run, and Tooling
 - `make`: Compiles the main service and helper binaries with the `jsoniter` build tag enabled.
 - `make all`: Builds `bin/app` alongside helper CLIs.
@@ -73,7 +179,7 @@ func main() {
 ## Development Workflow
 When adding a new API endpoint:
 1. Extend or create handler files under `internal/http/controller/<area>` (for example, `internal/http/controller/user/user_register.go`). Follow the existing `<feature>_<action>.go` naming and add matching `*_test.go` coverage.
-2. Add or adjust business logic in `internal/pkg/<domain>` (e.g., `internal/pkg/user`, `internal/pkg/permission`). Keep helpers reusable and include unit tests where practical.
+2. **REQUIRED**: Implement or extend business logic in `internal/pkg/<domain>` (e.g., `internal/pkg/user`, `internal/pkg/permission`) BEFORE writing controller code. Controllers MUST delegate to `internal/pkg/` and never contain business logic directly. Keep helpers reusable and include unit tests where practical.
 3. Wire routes in the corresponding router under `internal/http/route/<area>/api_route.go`, ensuring it implements `route.Router` and guards handlers with middleware as needed.
 4. If you introduce a brand-new router, register it in `internal/http/route/api_route.go` by appending it to the `routers` slice so it participates in `AttachRoutes`.
 5. For admin/protected capabilities, synchronise seeds between runtime and tests: update `cmd/kit/permission_seeder/permission_seeder.go` and mirror the same permissions/roles in `internal/test/permission_service.go` (and adjust `internal/test/admin_service.go` when admin fixtures change).
@@ -89,7 +195,7 @@ General guidance:
 - Location: place `*_test.go` files alongside the code they cover; prefer table-driven tests or testify suites.
 - Bootstrapping: leverage `internal/test` utilities for environment loading, seeded users, migrations, and CSRF helpers instead of reimplementing setup logic.
 - Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.testing` to provide DSNs and secrets.
-- Coverage: exercise both success and failure paths. Document skipped integration tests in PR descriptions. Add controller/service tests whenever adding new endpoints.
+- Coverage: exercise both success and failure paths. **REQUIRED**: Test all possible return values from controllers (success, validation failures, auth failures, business errors). Reference existing patterns in `internal/http/controller/**/*_test.go`. Document skipped integration tests in PR descriptions. Add controller/service tests whenever adding new endpoints.
 
 ## Migrations
 - Use Make targets with environment loaded from `.env`: `make mysql-migration args="up"`, `make pgsql-migration args="up"`, `make sqlite-migration args="up"`, or `make clickhouse-migration args="up"`.
