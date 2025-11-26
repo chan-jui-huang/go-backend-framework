@@ -299,7 +299,7 @@ go-backend-framework/
 
 The framework's architecture is built on **go-backend-package** patterns. For comprehensive details, refer to:
 
-📚 **[go-backend-package CLAUDE.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/CLAUDE.md)**
+📚 **[go-backend-package AGENTS.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)**
 
 ### Architecture Overview
 
@@ -337,7 +337,7 @@ loadEnv() → bootConfig() → BeforeExecute() → Execute() → AfterExecute()
 | **Database** | Goose migrations + GORM ORM wrapper |
 | **Logging** | Zap structured logging with rotation |
 
-**For implementation details, see:** [go-backend-package Architecture](https://github.com/chan-jui-huang/go-backend-package/blob/main/CLAUDE.md)
+**For implementation details, see:** [go-backend-package Architecture](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)
 
 ---
 
