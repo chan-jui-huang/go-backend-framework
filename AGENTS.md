@@ -29,7 +29,7 @@ This document guides AI agents and contributors working in this repository. It d
 
 ## Core Architecture Concepts
 
-**Foundation:** The framework is built on **[go-backend-package](https://github.com/chan-jui-huang/go-backend-package)** with 12 modular packages and zero cross-dependencies. For comprehensive architectural details, refer to: **[go-backend-package CLAUDE.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/CLAUDE.md)**
+**Foundation:** The framework is built on **[go-backend-package](https://github.com/chan-jui-huang/go-backend-package)** with 12 modular packages and zero cross-dependencies. For comprehensive architectural details, refer to: **[go-backend-package AGENTS.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)**
 
 ### Dual-Registry System
 - **Config Registry**: YAML configuration with environment variable expansion (`${VAR_NAME}`)
