@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report
 ==================
-Version Change: 1.0.1 → 2.0.0
-Rationale: MAJOR - Remove all path dependencies, make constitution fully portable
+Version Change: 2.0.0 → 2.1.0
+Rationale: MINOR - Add performance requirements to Technical Requirements section
 
 Modified Principles:
 - Principle I: Removed ALL path references (`internal/pkg/` → "business logic layer")
@@ -11,6 +11,7 @@ Modified Principles:
 
 Added Sections:
 - Technical Requirements (replaces Technology Stack with abstract requirements)
+  - Performance requirements added in v2.1.0 (database optimization, algorithm complexity, resource management, caching)
 - Layered Architecture (replaces any directory-specific constraints)
 - Layer dependency rules (prohibited/allowed relationships)
 
@@ -32,6 +33,7 @@ Migration Guide for Projects:
 - For go-backend-framework: Path mappings and technology choices already exist in CLAUDE.md
 
 Previous Changes:
+- v2.0.0 (2025-11-27): MAJOR - Removed all path/technology/tool dependencies for full portability
 - v1.0.1 (2025-11-27): Clarification patch - Expanded testing scenarios
 - v1.0.0 (2025-11-27): Initial constitution ratification
 -->
@@ -164,6 +166,27 @@ The framework MUST maintain strict separation between business logic and interfa
 - MUST implement attribute-based or role-based access control
 - MUST support policy-based authorization rules
 
+**Performance:**
+- Database queries MUST be optimized for efficiency
+  - Use appropriate indexes for frequently queried columns
+  - Avoid N+1 query problems through eager loading or batch queries
+  - Minimize full table scans and unnecessary joins
+  - Use query result pagination for large datasets
+- Algorithm complexity MUST be considered and documented
+  - Avoid algorithms with exponential or factorial time complexity for user-facing operations
+  - Document time and space complexity for critical operations
+  - Use appropriate data structures for the access patterns
+- Resource usage MUST be managed responsibly
+  - Prevent memory leaks through proper resource cleanup
+  - Use connection pooling for database and external service connections
+  - Close file handles and network connections when no longer needed
+  - Implement request timeouts to prevent resource exhaustion
+- Caching strategies MUST be employed where appropriate
+  - Cache expensive computations and frequently accessed data
+  - Implement cache invalidation strategies to maintain data consistency
+  - Use layered caching (application, database query cache) when beneficial
+  - Document cache lifetimes and invalidation triggers
+
 ### Layered Architecture
 
 The system MUST be organized into distinct architectural layers with clear responsibilities:
@@ -272,4 +295,4 @@ Projects SHOULD maintain separate operational documentation that complements thi
 
 The constitution remains stable and principle-focused, while implementation guides evolve with project-specific decisions and tooling.
 
-**Version**: 2.0.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-11-27
+**Version**: 2.1.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-11-27
