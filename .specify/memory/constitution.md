@@ -38,7 +38,7 @@ Previous Changes:
 - v1.0.0 (2025-11-27): Initial constitution ratification
 -->
 
-# go-backend-framework Constitution
+# Constitution
 
 ## Core Principles
 
