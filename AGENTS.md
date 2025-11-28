@@ -226,6 +226,123 @@ General guidance:
 - Behavior: Be precise, safe, and helpful. Do not fix unrelated bugs. Ask for clarification when requirements are ambiguous.
 - Formatting: Follow existing code style. Avoid intrusive refactors not required by the task.
 
+## Specification-Driven Development with SpecKit
+
+This project uses [SpecKit](https://github.com/github/spec-kit) for specification-driven development. SpecKit provides a structured workflow from feature specification to implementation.
+
+### Constitutional Authority
+
+**MANDATORY**: Before starting ANY development work, agents MUST read `.specify/memory/constitution.md`. This document contains the project's non-negotiable architectural principles and requirements that supersede all other guidance.
+
+- Location: `.specify/memory/constitution.md`
+- Authority: Constitutional principles override any conflicting guidance in other documentation
+- Scope: All development activities (features, bug fixes, refactoring, testing)
+- Compliance: All code, architecture decisions, and implementation plans MUST adhere to constitutional principles
+
+### SpecKit Workflow Stages
+
+SpecKit implements a five-stage specification-driven development workflow. Each stage is initiated through slash commands (custom commands integrated with your AI coding assistant).
+
+**Core Philosophy**: Specifications don't serve code—code serves specifications. The specification is the source of truth, with implementation plans and code continuously regenerated from it.
+
+#### Stage 1: Constitution (`/speckit.constitution`)
+- **Purpose**: Establish foundational governance principles that guide all development decisions
+- **When to use**: At project initialization or when amending architectural principles
+- **Output**: `.specify/memory/constitution.md` containing non-negotiable principles covering:
+  - Code quality standards
+  - Testing requirements
+  - Architectural constraints
+  - User experience guidelines
+  - Performance expectations
+- **Key principle**: The constitution is referenced throughout all subsequent phases to ensure consistency
+
+#### Stage 2: Specification (`/speckit.specify`)
+- **Purpose**: Define **what** to build and **why**, without specifying **how**
+- **When to use**: At the start of any new feature or significant change
+- **Focus**: Be explicit about functional requirements and user needs; avoid tech stack details at this stage
+- **Output**: `specs/[number]-[short-name]/spec.md` containing:
+  - Detailed feature requirements
+  - User stories
+  - Acceptance criteria
+  - Constraints and assumptions
+- **Important**: Marks ambiguities with `[NEEDS CLARIFICATION]` to prevent unvalidated assumptions
+- **Next steps**: `/speckit.clarify` (optional) or `/speckit.plan`
+
+#### Stage 3: Planning (`/speckit.plan`)
+- **Purpose**: Translate business requirements into technical architecture and technology choices
+- **When to use**: After specification is complete and validated
+- **Focus**: Make technology decisions (frameworks, databases, infrastructure) based on solidified requirements
+- **Output**:
+  - `plan.md` - High-level technical approach and architecture
+  - `research.md` - Technology investigation and decisions
+  - `data-model.md` - Entity schemas and relationships
+  - `contracts/` - API specifications
+  - `quickstart.md` - Validation scenarios
+- **Constitutional check**: Ensures alignment with principles before proceeding
+- **Next steps**: `/speckit.tasks`
+
+#### Stage 4: Task Generation (`/speckit.tasks`)
+- **Purpose**: Break down the implementation plan into actionable, dependency-ordered work items
+- **When to use**: After planning is approved
+- **Process**:
+  - Analyzes contracts, data models, and test scenarios
+  - Converts abstract requirements into concrete tasks
+  - Marks independent tasks as parallelizable `[P]`
+  - Organizes by user story and dependency order
+- **Output**: `tasks.md` containing executable task breakdown ready for implementation
+- **Task format**: `- [ ] [TaskID] [P?] [Story?] Description with file path`
+- **Next steps**: `/speckit.analyze` (optional) or `/speckit.implement`
+
+#### Stage 5: Implementation (`/speckit.implement`)
+- **Purpose**: Execute the task plan systematically to build the feature
+- **When to use**: After tasks are generated and optionally analyzed
+- **Process**:
+  - Executes tasks phase-by-phase following dependency order
+  - Respects parallel execution opportunities marked with `[P]`
+  - Maintains test-driven approach where applicable
+  - Marks completed tasks with `[X]` in `tasks.md`
+- **Constitutional compliance**: All implementation MUST adhere to constitutional principles
+- **Output**: Working implementation of the specified feature
+
+### Optional Quality Commands
+
+These commands enhance quality but are not required in the core workflow:
+
+#### `/speckit.clarify`
+- **Purpose**: Structured questioning to address specification gaps before planning
+- **When to use**: After `/speckit.specify` if ambiguities remain
+- **Process**: Asks up to 5 targeted questions, updates spec incrementally
+- **Output**: Updated `spec.md` with resolved ambiguities
+
+#### `/speckit.analyze`
+- **Purpose**: Cross-artifact consistency and coverage analysis
+- **When to use**: After `/speckit.tasks`, before implementation
+- **Process**: Non-destructive validation of spec/plan/tasks alignment
+- **Output**: Analysis report identifying gaps, conflicts, or constitution violations
+
+#### `/speckit.checklist`
+- **Purpose**: Generate custom validation checklists for requirement quality
+- **When to use**: At any stage to validate completeness, clarity, consistency
+- **Key concept**: "Unit tests for requirements" - tests requirement quality, NOT implementation
+- **Output**: Domain-specific checklists (e.g., `ux.md`, `security.md`, `api.md`)
+
+### Integration with Development Workflow
+
+SpecKit complements the existing workflow described in "Development Workflow" section:
+- Use `/speckit.specify` and `/speckit.plan` BEFORE implementing new features or endpoints
+- Task breakdown in `tasks.md` provides structured guidance for implementation
+- Constitutional principles in `.specify/memory/constitution.md` enforce architecture constraints
+- All SpecKit stages MUST respect the constitutional authority and "Business Logic Layer Architecture" patterns
+
+### Constitution and SpecKit Templates
+
+The constitution (`.specify/memory/constitution.md`) defines principles that inform SpecKit templates:
+- `spec-template.md`: Feature specification structure
+- `plan-template.md`: Implementation plan structure
+- `tasks-template.md`: Task breakdown structure
+
+When the constitution is amended, dependent templates are updated automatically to maintain consistency.
+
 ## Conventional Commits
 
 This project follows [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
