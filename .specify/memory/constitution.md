@@ -1,38 +1,48 @@
 <!--
 Sync Impact Report
 ==================
-Version Change: 2.0.0 → 2.1.0
-Rationale: MINOR - Add performance requirements to Technical Requirements section
-
-Modified Principles:
-- Principle I: Removed ALL path references (`internal/pkg/` → "business logic layer")
-- Principle III: Removed ALL path references (`internal/test/`, `test.HttpHandler` → abstract terms)
-- Principle V: Removed ALL path references, uses pure architectural layer terminology
-
-Added Sections:
-- Technical Requirements (replaces Technology Stack with abstract requirements)
-  - Performance requirements added in v2.1.0 (database optimization, algorithm complexity, resource management, caching)
-- Layered Architecture (replaces any directory-specific constraints)
-- Layer dependency rules (prohibited/allowed relationships)
-
-Removed Sections:
-- Directory Structure Constraints (BREAKING - path mappings should be maintained in CLAUDE.md)
+Version Change: 2.1.0 → 2.3.0
+Rationale: MINOR - Consolidated security sections, removed implementation-specific cryptography standards, updated to abstract OWASP Top 10 2025 principles
 
 Modified Sections:
-- Security Requirements: Removed path reference (`storage/` → "environment-specific configuration files")
-- Technology Stack → Technical Requirements: Replaced concrete technology choices (Go, Gin, GORM) with abstract requirements (quantum-resistant auth, GPU-resistant hashing, ACID transactions)
-- Compliance Review: Removed tool-specific reference ("pull requests" → "proposed changes")
-- Guidance Integration → Implementation Guidance: Removed project-specific references (CLAUDE.md, AI agent) with abstract documentation structure
+- Technical Requirements:
+  - Merged "Security & Cryptography" and "OWASP Web Application Security Standards" into single "Security Requirements" section
+  - Removed "Cryptography Standards" subsection (implementation details, already covered by OWASP A04:2025 Cryptographic Failures)
+  - Simplified OWASP categories from detailed MUST requirements to abstract descriptions
+  - Maintained official OWASP Top 10 2025 category names and core concepts
+  - Delegates detailed prevention strategies to official OWASP documentation
+
+Structural Changes:
+- Before: Two separate security sections with specific cryptography requirements
+- After: One unified "Security Requirements" section with pure OWASP Top 10 focus
+- Removed: Quantum-resistant algorithms, GPU-resistant hashing, key length specifications
+- Rationale: These are implementation details covered by A04:2025 Cryptographic Failures; constitution should remain abstract
+
+Philosophy:
+- Constitution defines WHAT security risks must be addressed (principle)
+- Implementation guides define HOW to address them (practice)
+- All 10 OWASP categories treated equally with abstract descriptions
+- No category gets special treatment with concrete implementation requirements
+
+Security Requirements Structure:
+- Opening statement: Security as fundamental architectural concern
+- OWASP Top 10 2025 Compliance (10 abstract risk categories, all equally abstract)
+- Implementation Guidance (context-specific assessment)
 
 Templates Requiring Updates:
-✅ All templates remain compatible (already use abstract terminology)
+✅ plan-template.md - Constitution Check section remains compatible
+✅ spec-template.md - Security requirements remain abstract
+✅ tasks-template.md - Security tasks inherit from updated constitution
 
-Migration Guide for Projects:
-- Projects using this constitution should maintain their own path mappings in project-specific docs (e.g., CLAUDE.md)
-- Projects should maintain their own technology choices mapping abstract requirements to concrete implementations
-- For go-backend-framework: Path mappings and technology choices already exist in CLAUDE.md
+Follow-up Actions:
+- Review OWASP Top 10 2025 RC1 documentation at https://owasp.org/Top10/2025/0x00_2025-Introduction/
+- Projects should create implementation-specific security guides (including cryptography standards)
+- Conduct risk assessment to determine which OWASP categories apply
+- Reference official OWASP prevention strategies for chosen technology stack
 
 Previous Changes:
+- v2.2.0 (SKIPPED): Had over-detailed MUST requirements (not constitutional)
+- v2.1.0 (2025-11-27): MINOR - Add performance requirements to Technical Requirements section
 - v2.0.0 (2025-11-27): MAJOR - Removed all path/technology/tool dependencies for full portability
 - v1.0.1 (2025-11-27): Clarification patch - Expanded testing scenarios
 - v1.0.0 (2025-11-27): Initial constitution ratification
@@ -141,32 +151,66 @@ The framework MUST maintain strict separation between business logic and interfa
 
 ### Technical Requirements
 
-**Security & Cryptography:**
-- Authentication MUST use quantum-resistant algorithms
-- Password hashing MUST use GPU-resistant algorithms (e.g., Argon2, scrypt, bcrypt with high cost)
-- Cryptographic keys MUST use industry-standard key lengths (minimum 256-bit for symmetric, 2048-bit for RSA)
+#### Security Requirements
 
-**Data Persistence:**
+Security is a fundamental architectural concern. All implementations MUST address the OWASP Top 10:2025 application security risks appropriate to their context and technology stack.
+
+Projects MUST address the OWASP Top 10:2025 application security risks. Detailed prevention strategies appropriate to the project's technology stack and threat model are available in the official OWASP documentation.
+
+**Source**: OWASP Top 10:2025 RC1, released November 6, 2025  
+**Reference**: https://owasp.org/Top10/2025/0x00_2025-Introduction/
+
+**The 10 Critical Security Risks:**
+
+1. **A01:2025 - Broken Access Control** - Failures in enforcing user permission policies, leading to unauthorized access to data or functions. Most critical risk affecting 3.73% of tested applications.
+
+2. **A02:2025 - Security Misconfiguration** - Insecure default configurations, incomplete setups, open cloud storage, verbose error messages, and missing security headers. Moved up from #5 in 2021.
+
+3. **A03:2025 - Software Supply Chain Failures** - Compromises in dependencies, build systems, and distribution infrastructure. Expanded from 2021's "Vulnerable Components" to address broader ecosystem risks.
+
+4. **A04:2025 - Cryptographic Failures** - Inadequate protection of sensitive data through weak or missing encryption, leading to data exposure. Previously ranked #2 in 2021.
+
+5. **A05:2025 - Injection** - Untrusted data sent to interpreters as commands or queries, ranging from SQL injection to cross-site scripting (XSS).
+
+6. **A06:2025 - Insecure Design** - Missing or ineffective security controls arising from failure to use threat modeling and secure design patterns during architecture phase.
+
+7. **A07:2025 - Authentication Failures** - Broken authentication and session management allowing attackers to compromise passwords, keys, or session tokens.
+
+8. **A08:2025 - Software or Data Integrity Failures** - Failure to verify integrity of software updates, critical data, and CI/CD pipelines, enabling unauthorized code or data modifications.
+
+9. **A09:2025 - Logging & Alerting Failures** - Insufficient logging and monitoring combined with missing or ineffective alerting, preventing timely detection and response to breaches.
+
+10. **A10:2025 - Mishandling of Exceptional Conditions** - Improper error handling, failing insecurely under abnormal conditions, and information leakage through error messages. New category for 2025.
+
+**Implementation Guidance:**  
+Projects MUST assess which OWASP categories apply to their specific context and implement appropriate preventive controls. Detailed prevention strategies, common vulnerability patterns, and testing guidance are available in the official OWASP documentation for each category.
+
+#### Data Persistence
+
 - MUST support ACID transactions for business-critical operations
 - MUST use connection pooling for database access
 - MUST provide schema versioning and migration capabilities
 - MUST support both relational and time-series data storage patterns when needed
 
-**Code Quality:**
+#### Code Quality
+
 - All code MUST pass static analysis security checks
 - All code MUST follow language-standard formatting conventions
 - All production builds MUST be optimized for performance
 
-**Observability:**
+#### Observability
+
 - MUST provide structured logging with log rotation
 - MUST support configuration via environment variables and configuration files
 - MUST generate machine-readable API documentation
 
-**Authorization:**
+#### Authorization
+
 - MUST implement attribute-based or role-based access control
 - MUST support policy-based authorization rules
 
-**Performance:**
+#### Performance
+
 - Database queries MUST be optimized for efficiency
   - Use appropriate indexes for frequently queried columns
   - Avoid N+1 query problems through eager loading or batch queries
@@ -295,4 +339,4 @@ Projects SHOULD maintain separate operational documentation that complements thi
 
 The constitution remains stable and principle-focused, while implementation guides evolve with project-specific decisions and tooling.
 
-**Version**: 2.1.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-11-27
+**Version**: 2.3.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-12-02
