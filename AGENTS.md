@@ -152,6 +152,19 @@ func CreateUser(c *gin.Context) {
 - Respect the `jsoniter` build tag where the Makefile enables it.
 - Follow directory-local conventions and keep reusable code in `internal/pkg/`; leave HTTP wiring and other application layers under `internal/`.
 - API route paths must use kebab case (e.g., `pet-store`).
+- Struct names: singular, PascalCase (e.g., `User`, `SchedulerJob`); use another casing only when a schema or user directive explicitly requires it.
+- Table tags: let GORM infer plural table names; only add a `TableName()` override when migrations already created a non-standard name (e.g., `AuditLog` mapping to `"audit_logs"`).
+- Slice fields for relations: use plural names for collections (e.g., `Roles []Role`, `Permissions []Permission`).
+- Single relations: keep singular names (e.g., `Role *Role`, `Profile *Profile`).
+- Many-to-many join structs: keep the join struct singular (e.g., `UserRole` for explicit join rows). Parent structs still use plural slices for the many-to-many relation (e.g., `User` has `Roles []Role`, `Role` has `Users []User`, both pointing to the same join table or struct).
+- Foreign key fields: camelCase with an `Id` suffix so GORM can map to `snake_case` columns (e.g., `UserId uint`, `RoleId uint`); add a `gorm:"column:..."` tag only when the column name diverges.
+- Packages: lower-case with no underscores. Files use `snake_case.go` only when it clarifies multiword names already used in the codebase.
+- If a directory name includes underscores for readability (e.g., `user_activity`), keep the Go package name lower-case without underscores and import with an explicit alias only when needed.
+- Follow the naming/style conventions of files in the same directory before introducing new patterns.
+- Helper/query patterns: when adding or modifying helpers, match the existing query shape in that file/package (ordering, preload use, error wrapping). Keep helpers minimal—do not add joins/preloads or extra queries unless the file already does or the requirement demands it.
+- Swagger `// @param` comments must keep the description placeholder as `" "` (do not insert real tokens like `"id"`).
+- Keep Swagger annotations aligned with actual runtime responses; if a handler logs an error instead of returning it, remove the unused error entry from Swagger.
+- When a foreign key guarantees a required parent (e.g., `User` on `UserPermission`), do not add nil-guards before using the preloaded relation.
 
 ### Example: indentation must use tabs
 ```golang
