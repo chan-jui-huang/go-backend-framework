@@ -30,6 +30,7 @@ func init() {
 		NewConfig(wd, configFile),
 		&registrar.RegisterExecutor,
 	)
+	emptyMockedServices()
 
 	HttpHandler = NewHttpHandler()
 	RdbmsMigration = NewRdbmsMigration()
@@ -54,4 +55,8 @@ func NewConfig(wd string, configFile string) func() *booter.Config {
 	return func() *booter.Config {
 		return booter.NewConfig(wd, configFile, false)
 	}
+}
+
+func emptyMockedServices() {
+	// service.Registry.Set("thirdParty.service", &struct{}{})
 }
