@@ -50,8 +50,8 @@ func loadEnv(wd string, envFile string) func() {
 	}
 }
 
-func NewConfig(wd string, envFile string) func() *booter.Config {
+func NewConfig(wd string, configFile string) func() *booter.Config {
 	return func() *booter.Config {
-		return booter.NewConfig(wd, envFile, false, true)
+		return booter.NewConfig(wd, configFile, false)
 	}
 }
