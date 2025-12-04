@@ -1,50 +1,65 @@
 <!--
 Sync Impact Report
 ==================
-Version Change: 2.1.0 → 2.3.0
-Rationale: MINOR - Consolidated security sections, removed implementation-specific cryptography standards, updated to abstract OWASP Top 10 2025 principles
+Version Change: 2.3.0 → 2.4.0
+Rationale: MINOR - Restructured and enhanced mock testing requirements with comprehensive verification guidelines and clearer scope boundaries
 
 Modified Sections:
-- Technical Requirements:
-  - Merged "Security & Cryptography" and "OWASP Web Application Security Standards" into single "Security Requirements" section
-  - Removed "Cryptography Standards" subsection (implementation details, already covered by OWASP A04:2025 Cryptographic Failures)
-  - Simplified OWASP categories from detailed MUST requirements to abstract descriptions
-  - Maintained official OWASP Top 10 2025 category names and core concepts
-  - Delegates detailed prevention strategies to official OWASP documentation
+- Core Principles → III. Integration-First Testing (Test-Driven Development):
+  - **Structural Change**: Reorganized into 5 subsections (A-E) for improved navigation and clarity
+  - **Expanded Mock Scope**: Broadened mocking boundaries from "only external third-party services" to include:
+    * All external systems (third-party APIs, internal microservices, payment providers)
+    * Infrastructure side-effects (messaging systems, file systems, system clock, randomness, OS services)
+    * Well-defined repository/gateway interfaces to datastores
+  - **Prohibited Mocking**: Explicitly forbids mocking internal domain logic (entities, value objects, pure domain services)
+  - **Test Double Distinction**: Added clear guidance on when to use stubs vs mocks
+  - **Mock Verification Standards**: New 4-point framework covering:
+    1. Choosing appropriate test double type (stub vs mock)
+    2. What to verify (business rules/observable behavior, not implementation details)
+    3. Invocation sequence (only when order is a business/protocol requirement)
+    4. Comprehensive coverage (all interactions defining behavior, excluding internal details)
+  - **Critical Flow Coverage**: Added requirement for at least one E2E test per critical flow without mocking core infrastructure
+  - **Controller Testing**: Relocated comprehensive HTTP status code testing requirements to subsection E
+  - Maintained abstract, implementation-agnostic language throughout
 
-Structural Changes:
-- Before: Two separate security sections with specific cryptography requirements
-- After: One unified "Security Requirements" section with pure OWASP Top 10 focus
-- Removed: Quantum-resistant algorithms, GPU-resistant hashing, key length specifications
-- Rationale: These are implementation details covered by A04:2025 Cryptographic Failures; constitution should remain abstract
+Content Changes:
+- Before: Single bullet "Mock/stub ONLY external third-party services"
+- After: Dedicated subsection C with explicit inclusion/exclusion lists
+- Before: Controller testing embedded in main bullet list
+- After: Separate subsection E with categorized status codes (Success, 4xx, 5xx, Edge Cases)
+- Added: Subsection B on integration testing requirements (realistic environments + critical flow coverage)
+- Added: Subsection D with 4-point mock verification framework
 
 Philosophy:
-- Constitution defines WHAT security risks must be addressed (principle)
-- Implementation guides define HOW to address them (practice)
-- All 10 OWASP categories treated equally with abstract descriptions
-- No category gets special treatment with concrete implementation requirements
-
-Security Requirements Structure:
-- Opening statement: Security as fundamental architectural concern
-- OWASP Top 10 2025 Compliance (10 abstract risk categories, all equally abstract)
-- Implementation Guidance (context-specific assessment)
+- Mock verification is not just about return values
+- Execution order verification only when semantically meaningful (protocol requirements)
+- Parameter verification focuses on business rules, not incidental implementation
+- Balance between realistic testing (fewer mocks) and practical boundaries (external systems)
+- Clear distinction between "what defines behavior" (test it) vs "how it's implemented" (don't test it)
 
 Templates Requiring Updates:
 ✅ plan-template.md - Constitution Check section remains compatible
-✅ spec-template.md - Security requirements remain abstract
-✅ tasks-template.md - Security tasks inherit from updated constitution
+✅ spec-template.md - Testing scenarios inherit enhanced mock scope and verification requirements
+✅ tasks-template.md - Test tasks should reflect expanded mock boundaries and verification standards
 
 Follow-up Actions:
-- Review OWASP Top 10 2025 RC1 documentation at https://owasp.org/Top10/2025/0x00_2025-Introduction/
-- Projects should create implementation-specific security guides (including cryptography standards)
-- Conduct risk assessment to determine which OWASP categories apply
-- Reference official OWASP prevention strategies for chosen technology stack
+- Projects using mocks should audit existing tests for:
+  * Appropriate mock scope (are internal domain services being mocked?)
+  * Comprehensive verification (sequence, arguments, returns when applicable)
+  * Distinction between stubs and mocks usage
+- Test frameworks should support invocation order and argument verification
+- Code review checklist should include:
+  * Mock scope validation (external systems only)
+  * Mock verification completeness
+  * Stub vs mock appropriateness
+- Consider adding E2E tests for critical flows if missing
 
 Previous Changes:
-- v2.2.0 (SKIPPED): Had over-detailed MUST requirements (not constitutional)
-- v2.1.0 (2025-11-27): MINOR - Add performance requirements to Technical Requirements section
-- v2.0.0 (2025-11-27): MAJOR - Removed all path/technology/tool dependencies for full portability
-- v1.0.1 (2025-11-27): Clarification patch - Expanded testing scenarios
+- v2.3.0 (2025-12-02): MINOR - Consolidated security sections, updated to OWASP Top 10 2025
+- v2.2.0 (SKIPPED): Over-detailed MUST requirements
+- v2.1.0 (2025-11-27): MINOR - Added performance requirements
+- v2.0.0 (2025-11-27): MAJOR - Removed path/technology dependencies for portability
+- v1.0.1 (2025-11-27): PATCH - Expanded testing scenarios
 - v1.0.0 (2025-11-27): Initial constitution ratification
 -->
 
@@ -82,37 +97,84 @@ Start with the simplest solution that solves the current problem. Avoid prematur
 
 Tests MUST be written BEFORE implementation (Red-Green-Refactor). Integration tests take priority over isolated unit tests.
 
+#### A. Test-Driven Development Process
+
 **Non-negotiable rules:**
 - Write contract/integration tests FIRST before any implementation
 - Tests MUST fail initially (Red phase) to prove they test real behavior
-- Tests MUST use realistic environments:
-  - Real databases (in-memory for tests, production-grade for staging/production)
-  - Actual service instances via test fixture infrastructure
-  - Real interface handlers through test harness framework
-- Mock/stub ONLY external third-party services (payment providers, external APIs)
-- Every controller MUST test ALL possible return scenarios including but not limited to:
-  - **Success cases**: 200 OK, 201 Created, 204 No Content (with expected data/empty body)
-  - **Client errors (4xx)**:
-    - 400 Bad Request: Invalid input format, malformed JSON, type mismatches
-    - 401 Unauthorized: Missing token, expired token, invalid token signature
-    - 403 Forbidden: Valid authentication but insufficient permissions, role-based access denial
-    - 404 Not Found: Resource does not exist, invalid resource ID
-    - 409 Conflict: Duplicate entries (e.g., email already exists), concurrent modification conflicts
-    - 422 Unprocessable Entity: Business rule violations (e.g., insufficient balance, invalid state transitions)
-    - 429 Too Many Requests: Rate limit exceeded
-  - **Server errors (5xx)**:
-    - 500 Internal Server Error: Unexpected exceptions, database connection failures
-    - 503 Service Unavailable: External service timeouts, circuit breaker open
-  - **Edge cases and boundary conditions**:
-    - Empty request bodies, null values, missing required fields
-    - Maximum/minimum value boundaries (e.g., string length limits, numeric ranges)
-    - Special characters and Unicode in text fields
-    - Large payloads approaching size limits
-    - Concurrent requests with race conditions
-    - Database constraint violations (foreign key, unique, not null)
 - Tests MUST be colocated with implementation following language conventions
 
-**Rationale:** Integration tests validate real-world behavior and catch configuration errors, connection issues, and integration bugs that unit tests miss. Writing tests first forces clear requirements and prevents untested code.
+#### B. Integration Testing Requirements
+
+**Testing Environment:**
+Tests MUST use realistic environments:
+- Real databases (in-memory for tests, production-grade for staging/production)
+- Actual service instances via test fixture infrastructure
+- Real interface handlers through test harness framework
+
+**Critical Flow Coverage:**
+For every critical user or business flow, there MUST be at least one integration or end-to-end test that exercises the flow without mocking core infrastructure (database, message bus, HTTP stack) to validate real behavior across boundaries.
+
+#### C. Test Doubles: When and How to Mock
+
+**Scope of Mocking:**
+Mock/stub MUST be limited to external systems and side-effect boundaries:
+- Network calls (third-party APIs, internal microservices, payment providers)
+- Messaging systems and background job queues
+- File systems, system clock, randomness sources, OS-level services
+- Datastores accessed via well-defined repository or gateway interfaces
+
+**Prohibited Mocking:**
+Internal domain logic (entities, value objects, pure domain services) MUST NOT be mocked.
+
+#### D. Mock Verification Standards
+
+When using test doubles:
+
+**1. Choosing the Right Test Double:**
+- Use **stubs** to provide predetermined responses without verifying interactions
+- Use **mocks** only when interactions (who calls whom, with what arguments) are part of the observable contract / behavior specification
+
+**2. What to Verify:**
+Tests SHOULD verify arguments of mocked operations that are part of business rules or observable behavior, not incidental implementation details.
+
+**3. Invocation Sequence:**
+Tests SHOULD verify invocation sequence ONLY when the order itself is a business or protocol requirement.
+
+**4. Comprehensive Coverage:**
+Mock verification MUST cover all interactions that define the behavior under test, but MUST NOT assert on internal implementation details (such as private helper calls, logging, or framework internals) that are free to change.
+
+#### E. Controller Testing Requirements
+
+Every controller MUST test ALL possible return scenarios including but not limited to:
+
+**Success Cases:**
+- 200 OK, 201 Created, 204 No Content (with expected data/empty body)
+
+**Client Errors (4xx):**
+- **400 Bad Request**: Invalid input format, malformed JSON, type mismatches
+- **401 Unauthorized**: Missing token, expired token, invalid token signature
+- **403 Forbidden**: Valid authentication but insufficient permissions, role-based access denial
+- **404 Not Found**: Resource does not exist, invalid resource ID
+- **409 Conflict**: Duplicate entries (e.g., email already exists), concurrent modification conflicts
+- **422 Unprocessable Entity**: Business rule violations (e.g., insufficient balance, invalid state transitions)
+- **429 Too Many Requests**: Rate limit exceeded
+
+**Server Errors (5xx):**
+- **500 Internal Server Error**: Unexpected exceptions, database connection failures
+- **503 Service Unavailable**: External service timeouts, circuit breaker open
+
+**Edge Cases and Boundary Conditions:**
+- Empty request bodies, null values, missing required fields
+- Maximum/minimum value boundaries (e.g., string length limits, numeric ranges)
+- Special characters and Unicode in text fields
+- Large payloads approaching size limits
+- Concurrent requests with race conditions
+- Database constraint violations (foreign key, unique, not null)
+
+#### Rationale
+
+Integration tests validate real-world behavior and catch configuration errors, connection issues, and integration bugs that unit tests miss. Writing tests first forces clear requirements and prevents untested code. Comprehensive mock verification helps ensure that, along the tested execution paths, the system not only returns the expected results but also calls the right collaborators with the right arguments at the right time.
 
 ### IV. Semantic Versioning with Conventional Commits
 
@@ -339,4 +401,4 @@ Projects SHOULD maintain separate operational documentation that complements thi
 
 The constitution remains stable and principle-focused, while implementation guides evolve with project-specific decisions and tooling.
 
-**Version**: 2.3.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-12-02
+**Version**: 2.4.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-12-04
