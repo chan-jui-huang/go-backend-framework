@@ -207,6 +207,7 @@ General guidance:
 - Test framework: standard `testing`; `testify` is available for assertions.
 - Location: place `*_test.go` files alongside the code they cover; prefer table-driven tests or testify suites.
 - Bootstrapping: leverage `internal/test` utilities for environment loading, seeded users, migrations, and CSRF helpers instead of reimplementing setup logic.
+- Mock services: when introducing a new mock service, also register it in `internal/test/test.go` within `emptyMockedServices` so the test harness initializes it.
 - Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.testing` to provide DSNs and secrets.
 - Coverage: exercise both success and failure paths. **REQUIRED**: Test all possible return values from controllers (success, validation failures, auth failures, business errors). Reference existing patterns in `internal/http/controller/**/*_test.go`. Document skipped integration tests in PR descriptions. Add controller/service tests whenever adding new endpoints.
 
