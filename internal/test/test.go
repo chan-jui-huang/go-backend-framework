@@ -58,5 +58,6 @@ func NewConfig(wd string, configFile string) func() *booter.Config {
 }
 
 func emptyMockedServices() {
+	// If you register a new mock in the registry, add an empty instance here.
 	// service.Registry.Set("thirdParty.service", &struct{}{})
 }
