@@ -196,6 +196,7 @@ When adding a new API endpoint:
 3. Wire routes in the corresponding router under `internal/http/route/<area>/api_route.go`, ensuring it implements `route.Router` and guards handlers with middleware as needed.
 4. If you introduce a brand-new router, register it in `internal/http/route/api_route.go` by appending it to the `routers` slice so it participates in `AttachRoutes`.
 5. For admin/protected capabilities, synchronise seeds between runtime and tests: update `cmd/kit/permission_seeder/permission_seeder.go` and mirror the same permissions/roles in `internal/test/permission_service.go` (and adjust `internal/test/admin_service.go` when admin fixtures change).
+6. Whenever you introduce a new mock service (gomock or hand-written), also register an empty instance in `internal/test/test.go:emptyMockedServices()` so the test harness has placeholders for injected services.
 
 General guidance:
 - Keep changes minimal and localized; avoid unrelated refactors.
