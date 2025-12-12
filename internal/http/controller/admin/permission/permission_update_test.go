@@ -128,6 +128,61 @@ func (suite *PermissionUpdateTestSuite) TestWrongAccessToken() {
 	suite.Equal(response.MessageToCode[response.Unauthorized], respBody.Code)
 }
 
+func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
+	test.PermissionService.AddPermissions()
+	test.PermissionService.GrantAdminToAdminUser()
+	accessToken := test.AdminService.Login()
+
+	cases := []struct {
+		reqBody  string
+		expected map[string]any
+	}{
+		{
+			reqBody: `{}`,
+			expected: map[string]any{
+				"name":      "required",
+				"http_apis": "required",
+			},
+		},
+		{
+			reqBody: `{"name":"p1","http_apis":[]}`,
+			expected: map[string]any{
+				"http_apis": "min",
+			},
+		},
+		{
+			reqBody: `{"name":"p1","http_apis":[{"method":"GET"}]}`,
+			expected: map[string]any{
+				"path": "required",
+			},
+		},
+		{
+			reqBody: `{"name":"p1","http_apis":[{"path":"/api/a"}]}`,
+			expected: map[string]any{
+				"method": "required",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), bytes.NewReader([]byte(c.reqBody)))
+		test.AddCsrfToken(req)
+		test.AddBearerToken(req, accessToken)
+		resp := httptest.NewRecorder()
+		test.HttpHandler.ServeHTTP(resp, req)
+
+		respBody := &response.ErrorResponse{}
+		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
+			panic(err)
+		}
+
+		suite.Equal(http.StatusBadRequest, resp.Code)
+		suite.Equal(response.RequestValidationFailed, respBody.Message)
+		suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+		suite.Equal(c.expected, respBody.Context)
+	}
+}
+
 func (suite *PermissionUpdateTestSuite) TestCsrfMismatch() {
 	test.PermissionService.AddPermissions()
 	test.PermissionService.GrantAdminToAdminUser()

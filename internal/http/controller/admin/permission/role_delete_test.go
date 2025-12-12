@@ -103,7 +103,8 @@ func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
 	test.PermissionService.GrantAdminToAdminUser()
 	accessToken := test.AdminService.Login()
 
-	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
+	reqBodyBytes := []byte(`{}`)
+	req := httptest.NewRequest("DELETE", "/api/admin/role", bytes.NewReader(reqBodyBytes))
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
@@ -117,6 +118,9 @@ func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
 	suite.Equal(http.StatusBadRequest, resp.Code)
 	suite.Equal(response.RequestValidationFailed, respBody.Message)
 	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	suite.Equal(map[string]any{
+		"ids": "required",
+	}, respBody.Context)
 }
 
 func (suite *RoleDeleteTestSuite) TestWrongAccessToken() {

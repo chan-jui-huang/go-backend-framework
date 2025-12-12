@@ -257,7 +257,6 @@ definitions:
       order_by:
         type: string
       page:
-        minimum: 1
         type: integer
       per_page:
         minimum: 10
@@ -384,7 +383,6 @@ definitions:
       order_by:
         type: string
       page:
-        minimum: 1
         type: integer
       per_page:
         minimum: 10
@@ -550,7 +548,6 @@ paths:
         name: order_by
         type: string
       - in: query
-        minimum: 1
         name: page
         required: true
         type: integer

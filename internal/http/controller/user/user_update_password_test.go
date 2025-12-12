@@ -76,29 +76,67 @@ func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 
 func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 	accessToken := test.UserService.Login()
-	userUpdateRequest := user.UserUpdatePasswordRequest{
-		Password:        "abcABC123",
-		ConfirmPassword: "abcABC",
-	}
-	reqBody, err := json.Marshal(userUpdateRequest)
-	if err != nil {
-		panic(err)
+	cases := []struct {
+		reqBody  string
+		expected map[string]any
+	}{
+		{
+			reqBody: `{}`,
+			expected: map[string]any{
+				"current_password": "required",
+				"password":         "required",
+				"confirm_password": "required",
+			},
+		},
+		{
+			reqBody: `{"current_password":"abcABC123","password":"Abc12","confirm_password":"Abc12"}`,
+			expected: map[string]any{
+				"password": "gte",
+			},
+		},
+		{
+			reqBody: `{"current_password":"abcABC123","password":"ABCDEFG1","confirm_password":"ABCDEFG1"}`,
+			expected: map[string]any{
+				"password": "containsany",
+			},
+		},
+		{
+			reqBody: `{"current_password":"abcABC123","password":"abcdefg1","confirm_password":"abcdefg1"}`,
+			expected: map[string]any{
+				"password": "containsany",
+			},
+		},
+		{
+			reqBody: `{"current_password":"abcABC123","password":"abcABCdef","confirm_password":"abcABCdef"}`,
+			expected: map[string]any{
+				"password": "containsany",
+			},
+		},
+		{
+			reqBody: `{"current_password":"abcABC123","password":"abcABC123","confirm_password":"abcABC124"}`,
+			expected: map[string]any{
+				"confirm_password": "eqfield",
+			},
+		},
 	}
 
-	req := httptest.NewRequest("PUT", "/api/user/password", bytes.NewReader(reqBody))
-	test.AddBearerToken(req, accessToken)
-	test.AddCsrfToken(req)
-	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	for _, c := range cases {
+		req := httptest.NewRequest("PUT", "/api/user/password", bytes.NewReader([]byte(c.reqBody)))
+		test.AddBearerToken(req, accessToken)
+		test.AddCsrfToken(req)
+		resp := httptest.NewRecorder()
+		test.HttpHandler.ServeHTTP(resp, req)
 
-	respBody := &response.ErrorResponse{}
-	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
-		panic(err)
+		respBody := &response.ErrorResponse{}
+		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+			panic(err)
+		}
+
+		suite.Equal(http.StatusBadRequest, resp.Code)
+		suite.Equal(response.RequestValidationFailed, respBody.Message)
+		suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+		suite.Equal(c.expected, respBody.Context)
 	}
-
-	suite.Equal(http.StatusBadRequest, resp.Code)
-	suite.Equal(response.RequestValidationFailed, respBody.Message)
-	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
 }
 
 func (suite *UserUpdatePasswordTestSuite) TearDownTest() {

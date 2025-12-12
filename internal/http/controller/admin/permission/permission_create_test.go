@@ -81,20 +81,54 @@ func (suite *PermissionCreateTestSuite) TestRequestValidationFailed() {
 	test.PermissionService.GrantAdminToAdminUser()
 	accessToken := test.AdminService.Login()
 
-	req := httptest.NewRequest("POST", "/api/admin/permission", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
-	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
-
-	respBody := &response.ErrorResponse{}
-	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
-		panic(err)
+	cases := []struct {
+		reqBody  string
+		expected map[string]any
+	}{
+		{
+			reqBody: `{}`,
+			expected: map[string]any{
+				"name":      "required",
+				"http_apis": "required",
+			},
+		},
+		{
+			reqBody: `{"name":"p1","http_apis":[]}`,
+			expected: map[string]any{
+				"http_apis": "min",
+			},
+		},
+		{
+			reqBody: `{"name":"p1","http_apis":[{"method":"GET"}]}`,
+			expected: map[string]any{
+				"path": "required",
+			},
+		},
+		{
+			reqBody: `{"name":"p1","http_apis":[{"path":"/api/a"}]}`,
+			expected: map[string]any{
+				"method": "required",
+			},
+		},
 	}
 
-	suite.Equal(http.StatusBadRequest, resp.Code)
-	suite.Equal(response.RequestValidationFailed, respBody.Message)
-	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	for _, c := range cases {
+		req := httptest.NewRequest("POST", "/api/admin/permission", bytes.NewReader([]byte(c.reqBody)))
+		test.AddCsrfToken(req)
+		test.AddBearerToken(req, accessToken)
+		resp := httptest.NewRecorder()
+		test.HttpHandler.ServeHTTP(resp, req)
+
+		respBody := &response.ErrorResponse{}
+		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
+			panic(err)
+		}
+
+		suite.Equal(http.StatusBadRequest, resp.Code)
+		suite.Equal(response.RequestValidationFailed, respBody.Message)
+		suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+		suite.Equal(c.expected, respBody.Context)
+	}
 }
 
 func (suite *PermissionCreateTestSuite) TestWrongAccessToken() {

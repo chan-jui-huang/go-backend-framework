@@ -214,7 +214,8 @@ func (suite *UserRoleUpdateTestSuite) TestRequestValidationFailed() {
 	test.PermissionService.GrantAdminToAdminUser()
 	accessToken := test.AdminService.Login()
 
-	req := httptest.NewRequest("PUT", "/api/admin/user-role", nil)
+	reqBodyBytes := []byte(`{}`)
+	req := httptest.NewRequest("PUT", "/api/admin/user-role", bytes.NewReader(reqBodyBytes))
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
@@ -228,6 +229,10 @@ func (suite *UserRoleUpdateTestSuite) TestRequestValidationFailed() {
 	suite.Equal(http.StatusBadRequest, resp.Code)
 	suite.Equal(response.RequestValidationFailed, respBody.Message)
 	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	suite.Equal(map[string]any{
+		"user_id":  "required",
+		"role_ids": "required",
+	}, respBody.Context)
 }
 
 func (suite *UserRoleUpdateTestSuite) TestWrongAccessToken() {

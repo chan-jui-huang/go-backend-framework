@@ -92,7 +92,8 @@ func (suite *UserUpdateTestSuite) TestCsrfMismatch() {
 
 func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
 	accessToken := test.UserService.Login()
-	req := httptest.NewRequest("PUT", "/api/user", nil)
+	reqBodyBytes := []byte(`{}`)
+	req := httptest.NewRequest("PUT", "/api/user", bytes.NewReader(reqBodyBytes))
 	test.AddBearerToken(req, accessToken)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -106,6 +107,10 @@ func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
 	suite.Equal(http.StatusBadRequest, resp.Code)
 	suite.Equal(response.RequestValidationFailed, respBody.Message)
 	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	suite.Equal(map[string]any{
+		"name":  "required",
+		"email": "required",
+	}, respBody.Context)
 }
 
 func (suite *UserUpdateTestSuite) TearDownTest() {
