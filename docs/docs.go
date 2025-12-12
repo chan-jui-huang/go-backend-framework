@@ -45,7 +45,6 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "name": "page",
                         "in": "query",
@@ -1674,8 +1673,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "page": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "per_page": {
                     "type": "integer",
@@ -1857,8 +1855,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "page": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "per_page": {
                     "type": "integer",

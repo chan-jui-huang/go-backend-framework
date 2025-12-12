@@ -68,19 +68,66 @@ func (suite *UserRegisterTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserRegisterTestSuite) TestRequestValidationFailed() {
-	req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader([]byte{}))
-	test.AddCsrfToken(req)
-	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
-
-	respBody := &response.ErrorResponse{}
-	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
-		panic(err)
+	cases := []struct {
+		reqBody  string
+		expected map[string]any
+	}{
+		{
+			reqBody: `{}`,
+			expected: map[string]any{
+				"name":     "required",
+				"email":    "required",
+				"password": "required",
+			},
+		},
+		{
+			reqBody: `{"name":"bob","email":"not-an-email","password":"abcABC123"}`,
+			expected: map[string]any{
+				"email": "email",
+			},
+		},
+		{
+			reqBody: `{"name":"bob","email":"bob@test.com","password":"Abc12"}`,
+			expected: map[string]any{
+				"password": "gte",
+			},
+		},
+		{
+			reqBody: `{"name":"bob","email":"bob@test.com","password":"ABCDEFG1"}`,
+			expected: map[string]any{
+				"password": "containsany",
+			},
+		},
+		{
+			reqBody: `{"name":"bob","email":"bob@test.com","password":"abcdefg1"}`,
+			expected: map[string]any{
+				"password": "containsany",
+			},
+		},
+		{
+			reqBody: `{"name":"bob","email":"bob@test.com","password":"abcABCdef"}`,
+			expected: map[string]any{
+				"password": "containsany",
+			},
+		},
 	}
 
-	suite.Equal(http.StatusBadRequest, resp.Code)
-	suite.Equal(response.RequestValidationFailed, respBody.Message)
-	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	for _, c := range cases {
+		req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader([]byte(c.reqBody)))
+		test.AddCsrfToken(req)
+		resp := httptest.NewRecorder()
+		test.HttpHandler.ServeHTTP(resp, req)
+
+		respBody := &response.ErrorResponse{}
+		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+			panic(err)
+		}
+
+		suite.Equal(http.StatusBadRequest, resp.Code)
+		suite.Equal(response.RequestValidationFailed, respBody.Message)
+		suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+		suite.Equal(c.expected, respBody.Context)
+	}
 }
 
 func (suite *UserRegisterTestSuite) TearDownSuite() {

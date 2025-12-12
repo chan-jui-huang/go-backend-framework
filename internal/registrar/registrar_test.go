@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	_ "github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
@@ -82,6 +84,46 @@ func (suite *RegisterExecutorTestSuite) TestSimpleRegisterExecutor() {
 	suite.NotNil(service.Registry.Get("formDecoder"))
 	suite.NotNil(service.Registry.Get("modifier"))
 	suite.NotNil(service.Registry.Get("mapstructureDecoder"))
+}
+
+func (suite *RegisterExecutorTestSuite) TestValidatorRegistrarTagNameFunc() {
+	config.Registry = config.NewRegistry(&suite.viper)
+	config.Registry.Set("booter", &suite.booterConfig)
+	service.Registry = service.NewRegistry()
+
+	registrar.RegisterExecutor.AfterExecute()
+	registrar.RegisterExecutor.Execute()
+	registrar.RegisterExecutor.BeforeExecute()
+
+	type dummy struct {
+		Email string `json:"email" binding:"required,email"`
+		Page  int    `form:"page" binding:"required,gt=0"`
+	}
+
+	engine, ok := binding.Validator.Engine().(*validator.Validate)
+	if !ok {
+		suite.Fail("validator engine is not *validator.Validate")
+		return
+	}
+
+	err := engine.Struct(&dummy{})
+	suite.Error(err)
+
+	ves, ok := err.(validator.ValidationErrors)
+	if !ok {
+		suite.Fail("error is not ValidationErrors")
+		return
+	}
+
+	fields := map[string]string{}
+	for _, fe := range ves {
+		fields[fe.Field()] = fe.Tag()
+	}
+
+	suite.Equal(map[string]string{
+		"email": "required",
+		"page":  "required",
+	}, fields)
 }
 
 func (suite *RegisterExecutorTestSuite) TearDownSuite() {

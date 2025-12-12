@@ -85,19 +85,47 @@ func (suite *HttpApiSearchTestSuite) TestRequestValidationFailed() {
 	test.PermissionService.GrantAdminToAdminUser()
 	accessToken := test.AdminService.Login()
 
-	req := httptest.NewRequest("GET", "/api/admin/http-api", nil)
-	test.AddBearerToken(req, accessToken)
-	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
-
-	respBody := &response.ErrorResponse{}
-	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
-		panic(err)
+	cases := []struct {
+		query    string
+		expected map[string]any
+	}{
+		{
+			query: "",
+			expected: map[string]any{
+				"page":     "required",
+				"per_page": "required",
+			},
+		},
+		{
+			query: "?page=-1&per_page=10",
+			expected: map[string]any{
+				"page": "gt",
+			},
+		},
+		{
+			query: "?page=1&per_page=1",
+			expected: map[string]any{
+				"per_page": "min",
+			},
+		},
 	}
 
-	suite.Equal(http.StatusBadRequest, resp.Code)
-	suite.Equal(response.RequestValidationFailed, respBody.Message)
-	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	for _, c := range cases {
+		req := httptest.NewRequest("GET", "/api/admin/http-api"+c.query, nil)
+		test.AddBearerToken(req, accessToken)
+		resp := httptest.NewRecorder()
+		test.HttpHandler.ServeHTTP(resp, req)
+
+		respBody := &response.ErrorResponse{}
+		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
+			panic(err)
+		}
+
+		suite.Equal(http.StatusBadRequest, resp.Code)
+		suite.Equal(response.RequestValidationFailed, respBody.Message)
+		suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+		suite.Equal(c.expected, respBody.Context)
+	}
 }
 
 func (suite *HttpApiSearchTestSuite) TestWrongAccessToken() {

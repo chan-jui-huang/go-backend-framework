@@ -12,6 +12,7 @@ import (
 
 var RegisterExecutor = registerExecutor{
 	registrarCenter: booter.NewRegistrarCenter([]booter.Registrar{
+		&ValidatorRegistrar{},
 		&LoggerRegistrar{},
 		&DatabaseRegistrar{},
 		&RedisRegistrar{},

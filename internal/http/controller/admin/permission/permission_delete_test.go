@@ -112,6 +112,31 @@ func (suite *PermissionDeleteTestSuite) TestWrongAccessToken() {
 	suite.Equal(response.MessageToCode[response.Unauthorized], respBody.Code)
 }
 
+func (suite *PermissionDeleteTestSuite) TestRequestValidationFailed() {
+	test.PermissionService.AddPermissions()
+	test.PermissionService.GrantAdminToAdminUser()
+	accessToken := test.AdminService.Login()
+
+	reqBodyBytes := []byte(`{}`)
+	req := httptest.NewRequest("DELETE", "/api/admin/permission", bytes.NewReader(reqBodyBytes))
+	test.AddCsrfToken(req)
+	test.AddBearerToken(req, accessToken)
+	resp := httptest.NewRecorder()
+	test.HttpHandler.ServeHTTP(resp, req)
+
+	respBody := &response.ErrorResponse{}
+	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
+		panic(err)
+	}
+
+	suite.Equal(http.StatusBadRequest, resp.Code)
+	suite.Equal(response.RequestValidationFailed, respBody.Message)
+	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	suite.Equal(map[string]any{
+		"ids": "required",
+	}, respBody.Context)
+}
+
 func (suite *PermissionDeleteTestSuite) TestCsrfMismatch() {
 	test.PermissionService.AddPermissions()
 	test.PermissionService.GrantAdminToAdminUser()

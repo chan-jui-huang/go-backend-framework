@@ -35,7 +35,7 @@ func UpdatePassword(c *gin.Context) {
 	logger := service.Registry.Get("logger").(*zap.Logger)
 	reqBody := new(UserUpdatePasswordRequest)
 	if err := c.ShouldBindJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
 		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c.Request)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

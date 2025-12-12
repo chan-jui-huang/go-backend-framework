@@ -41,7 +41,6 @@
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "name": "page",
                         "in": "query",
@@ -1670,8 +1669,7 @@
                     "type": "string"
                 },
                 "page": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "per_page": {
                     "type": "integer",
@@ -1853,8 +1851,7 @@
                     "type": "string"
                 },
                 "page": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "per_page": {
                     "type": "integer",

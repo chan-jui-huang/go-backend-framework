@@ -118,19 +118,41 @@ func (suite *UserLoginTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserLoginTestSuite) TestRequestValidationFailed() {
-	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader([]byte{}))
-	test.AddCsrfToken(req)
-	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
-
-	respBody := &response.ErrorResponse{}
-	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
-		panic(err)
+	cases := []struct {
+		reqBody  string
+		expected map[string]any
+	}{
+		{
+			reqBody: `{}`,
+			expected: map[string]any{
+				"email":    "required",
+				"password": "required",
+			},
+		},
+		{
+			reqBody: `{"email":"not-an-email","password":"x"}`,
+			expected: map[string]any{
+				"email": "email",
+			},
+		},
 	}
 
-	suite.Equal(http.StatusBadRequest, resp.Code)
-	suite.Equal(response.RequestValidationFailed, respBody.Message)
-	suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+	for _, c := range cases {
+		req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader([]byte(c.reqBody)))
+		test.AddCsrfToken(req)
+		resp := httptest.NewRecorder()
+		test.HttpHandler.ServeHTTP(resp, req)
+
+		respBody := &response.ErrorResponse{}
+		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
+			panic(err)
+		}
+
+		suite.Equal(http.StatusBadRequest, resp.Code)
+		suite.Equal(response.RequestValidationFailed, respBody.Message)
+		suite.Equal(response.MessageToCode[response.RequestValidationFailed], respBody.Code)
+		suite.Equal(c.expected, respBody.Context)
+	}
 }
 
 func (suite *UserLoginTestSuite) TearDownSuite() {

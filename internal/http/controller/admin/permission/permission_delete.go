@@ -37,7 +37,7 @@ func Delete(c *gin.Context) {
 	reqBody := new(PermissionDeleteRequest)
 	logger := service.Registry.Get("logger").(*zap.Logger)
 	if err := c.ShouldBindJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
