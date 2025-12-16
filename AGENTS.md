@@ -358,6 +358,33 @@ The constitution (`.specify/memory/constitution.md`) defines principles that inf
 
 When the constitution is amended, dependent templates are updated automatically to maintain consistency.
 
+## Project Specifications (`docs/specs`)
+The `docs/specs` directory is the designated location for project function specifications.
+
+### Conventions
+1. **Directory Structure**: Each specification must be contained within a directory following the `00X-NAME` pattern.
+   - `00X`: A three-digit sequential number (e.g., `001`, `002`).
+   - `NAME`: A concise description of the specification (e.g., `user-registration`).
+   - Inside this directory, there must be at least two files: `spec.md` and `plan.md`.
+2. **SpecKit Compliance**: The content and structure of `spec.md` and `plan.md` must strictly adhere to the guidelines defined in the [Specification-Driven Development with SpecKit](#specification-driven-development-with-speckit) section.
+3. **Sequential Relationship**: The numbering represents a strict order or dependency sequence between documents. Ensure new specifications respect this existing order.
+4. **Language**: All documentation within `docs/specs` must be written in **Traditional Chinese (zh-TW)**. However, software engineering terminology must use **English (en-US)**.
+5. **Security**: No sensitive data (passwords, API keys, private keys, credentials, etc.) is allowed in `docs/specs`.
+6. **Accuracy**: Do not write documentation that contradicts the actual code logic. Ensure the specification matches the implementation.
+7. **Content Separation**:
+   - `spec.md`: Must focus strictly on **Why** and **What**. It is forbidden to include **How** (implementation details).
+   - `plan.md`: Must focus strictly on **How** (implementation details, technology stack, flow control). It is forbidden to include **Why** and **What**.
+8. **Spec Structure**: When describing exposed interfaces (e.g., APIs), strict separation of concerns is required:
+   - **In `spec.md` (Functional Requirements)**:
+     - **Why**: The business or system reason for this feature.
+     - **What**: The functional description of the feature.
+     - **User Story**: In the format "Given [context], When [action], Then [outcome]".
+   - **In `plan.md` (Technical Implementation)**:
+     - **How**: The overall technical approach to realize the requirements.
+     - **Technical Details**: Specifics on flow control, technology stack, and data models (including but not limited to these aspects).
+     - **Implementation Strategy**: High-level phases or approach for delivery. **Do not** include detailed task lists or checkboxes (these belong in `tasks.md`).
+9. **Verification**: Whenever modifying `spec.md` or `plan.md`, explicitly verify that technical implementation details (How) have not leaked into `spec.md`, and that functional requirements (Why/What) are not duplicated in `plan.md`.
+
 ## Conventional Commits
 
 This project follows [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
