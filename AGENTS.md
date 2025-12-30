@@ -142,6 +142,7 @@ func CreateUser(c *gin.Context) {
 - Docs: `make swagger` regenerates Swagger artifacts after updating annotations.
 - Quality: `make linter` (golangci-lint with `errcheck` and `gosec`) and `golangci-lint run ./...` should pass before commits.
 - Tests & benchmarks: `make test [args=./...]`, `make benchmark`, or `go test ./...` (ensure SQLite and `.env.testing` are available).
+- When using `make test`, do not set the `GOCACHE` environment variable.
 
 ## Coding Style & Naming Conventions
 - Run `gofmt`, `goimports`, and `go vet ./...` prior to review. Indentation must use tabs (gofmt default, width 4 spaces).
