@@ -133,6 +133,16 @@ func CreateUser(c *gin.Context) {
 - **Maintainability**: Changes to business rules are centralized in `internal/pkg/`
 - **Consistency**: All interfaces use the same validated business logic
 
+### Single-Interface Scope/KISS Override (Global)
+- For ALL interfaces (HTTP, scheduler, CLI):
+  - If the data access or business flow is used by a single interface only, keep it inside the interface layer
+    (controller/scheduler/CLI), following the existing in-file style.
+  - Do NOT create a new internal/pkg/* function solely for single-use logic.
+- Only extract to internal/pkg/* when:
+  - The logic is reused by 3 or more call sites, OR
+  - There is an existing helper in that package that already matches the query pattern.
+- This override takes precedence over the general "controllers must only validate/call internal/pkg" rule.
+
 ## Build, Run, and Tooling
 - `make`: Compiles the main service and helper binaries with the `jsoniter` build tag enabled.
 - `make all`: Builds `bin/app` alongside helper CLIs.

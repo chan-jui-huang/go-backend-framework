@@ -1,64 +1,38 @@
 <!--
 Sync Impact Report
 ==================
-Version Change: 2.3.0 → 2.4.0
-Rationale: MINOR - Restructured and enhanced mock testing requirements with comprehensive verification guidelines and clearer scope boundaries
+Version Change: 2.4.0 → 3.0.0
+Rationale: MAJOR - Reprioritized Single-Interface Scope/KISS Override above strict
+controller delegation and softened controller business-logic prohibition.
 
 Modified Sections:
-- Core Principles → III. Integration-First Testing (Test-Driven Development):
-  - **Structural Change**: Reorganized into 5 subsections (A-E) for improved navigation and clarity
-  - **Expanded Mock Scope**: Broadened mocking boundaries from "only external third-party services" to include:
-    * All external systems (third-party APIs, internal microservices, payment providers)
-    * Infrastructure side-effects (messaging systems, file systems, system clock, randomness, OS services)
-    * Well-defined repository/gateway interfaces to datastores
-  - **Prohibited Mocking**: Explicitly forbids mocking internal domain logic (entities, value objects, pure domain services)
-  - **Test Double Distinction**: Added clear guidance on when to use stubs vs mocks
-  - **Mock Verification Standards**: New 4-point framework covering:
-    1. Choosing appropriate test double type (stub vs mock)
-    2. What to verify (business rules/observable behavior, not implementation details)
-    3. Invocation sequence (only when order is a business/protocol requirement)
-    4. Comprehensive coverage (all interactions defining behavior, excluding internal details)
-  - **Critical Flow Coverage**: Added requirement for at least one E2E test per critical flow without mocking core infrastructure
-  - **Controller Testing**: Relocated comprehensive HTTP status code testing requirements to subsection E
-  - Maintained abstract, implementation-agnostic language throughout
-
-Content Changes:
-- Before: Single bullet "Mock/stub ONLY external third-party services"
-- After: Dedicated subsection C with explicit inclusion/exclusion lists
-- Before: Controller testing embedded in main bullet list
-- After: Separate subsection E with categorized status codes (Success, 4xx, 5xx, Edge Cases)
-- Added: Subsection B on integration testing requirements (realistic environments + critical flow coverage)
-- Added: Subsection D with 4-point mock verification framework
-
-Philosophy:
-- Mock verification is not just about return values
-- Execution order verification only when semantically meaningful (protocol requirements)
-- Parameter verification focuses on business rules, not incidental implementation
-- Balance between realistic testing (fewer mocks) and practical boundaries (external systems)
-- Clear distinction between "what defines behavior" (test it) vs "how it's implemented" (don't test it)
+- Core Principles → I. Single Responsibility Principle (SOLID Foundation):
+  - Introduced Primary Rule for Single-Interface Scope/KISS Override
+  - Downgraded controller delegation to default guidance with exceptions
+- Core Principles → V. Separation of Concerns (Layered Architecture):
+  - Aligned interface-layer responsibilities with Single-Interface Scope/KISS Override
+  - Softened transaction placement rule for single-interface flows
+- Layered Architecture:
+  - Clarified Interface Layers and Layer Dependencies to reflect override
 
 Templates Requiring Updates:
-✅ plan-template.md - Constitution Check section remains compatible
-✅ spec-template.md - Testing scenarios inherit enhanced mock scope and verification requirements
-✅ tasks-template.md - Test tasks should reflect expanded mock boundaries and verification standards
+✅ plan template - Constitution Check references updated
+✅ spec template - Requirements guidance aligned
+✅ tasks template - Task guidance aligned
 
 Follow-up Actions:
-- Projects using mocks should audit existing tests for:
-  * Appropriate mock scope (are internal domain services being mocked?)
-  * Comprehensive verification (sequence, arguments, returns when applicable)
-  * Distinction between stubs and mocks usage
-- Test frameworks should support invocation order and argument verification
-- Code review checklist should include:
-  * Mock scope validation (external systems only)
-  * Mock verification completeness
-  * Stub vs mock appropriateness
-- Consider adding E2E tests for critical flows if missing
+- Review existing guidance docs for wording that conflicts with
+  Single-Interface Scope/KISS Override priority (if any appear later).
 
 Previous Changes:
-- v2.3.0 (2025-12-02): MINOR - Consolidated security sections, updated to OWASP Top 10 2025
+- v2.4.0 (2025-12-04): MINOR - Restructured testing requirements with expanded
+  mock scope and verification standards
+- v2.3.0 (2025-12-02): MINOR - Consolidated security sections, updated to OWASP
+  Top 10 2025
 - v2.2.0 (SKIPPED): Over-detailed MUST requirements
 - v2.1.0 (2025-11-27): MINOR - Added performance requirements
-- v2.0.0 (2025-11-27): MAJOR - Removed path/technology dependencies for portability
+- v2.0.0 (2025-11-27): MAJOR - Removed path/technology dependencies for
+  portability
 - v1.0.1 (2025-11-27): PATCH - Expanded testing scenarios
 - v1.0.0 (2025-11-27): Initial constitution ratification
 -->
@@ -73,7 +47,14 @@ Every module, class, or function MUST have one and only one reason to change. Th
 
 **Non-negotiable rules:**
 - Each module in the business logic layer MUST serve a single domain or capability
-- Interface controllers MUST NOT contain business logic; they MUST delegate to the business logic layer
+- Primary Rule (Single-Interface Scope/KISS Override): If a data access or business flow
+  is used by a single interface only, it SHOULD remain in that interface layer
+  (controller/scheduler/CLI). Do NOT extract to a shared business-logic layer
+  unless reuse reaches three or more call sites or an existing helper already
+  matches.
+- Default Rule (Separation of Concerns): Controllers SHOULD delegate business
+  logic to the business layer to keep interface code thin, except when the
+  Single-Interface Scope/KISS Override applies.
 - Business logic MUST reside in a dedicated layer, separate from all interface implementations
 - Data models MUST only define schema and relationships, never business operations
 - Cross-cutting concerns (authentication, authorization, logging) MUST be handled by dedicated, single-purpose components
@@ -198,14 +179,20 @@ All changes MUST follow Git-based version control with semantic versioning and C
 The framework MUST maintain strict separation between business logic and interface layers.
 
 **Non-negotiable rules:**
-- Business logic MUST be interface-agnostic and isolated in a dedicated layer
-- Interface layers (HTTP, CLI, scheduler, etc.) MUST only handle:
+- Except when the Single-Interface Scope/KISS Override applies, business logic
+  MUST be interface-agnostic and isolated in a dedicated layer.
+- Interface layers (HTTP, CLI, scheduler, etc.) SHOULD only handle:
   - Input validation
   - Calling business logic layer functions
   - Output formatting
-- All interface implementations MUST delegate to the same business logic layer
-- No business logic duplication across interface layers
-- Database transactions MUST be managed in the business logic layer, not interface controllers
+  unless the Single-Interface Scope/KISS Override applies to a single-interface flow.
+- All interface implementations SHOULD delegate to the same business logic
+  layer when shared business logic exists.
+- No business logic duplication across interface layers unless required by the
+  Single-Interface Scope/KISS Override for single-interface use cases.
+- Database transactions SHOULD be managed in the business logic layer, except
+  when the Single-Interface Scope/KISS Override requires them in the interface layer
+  for single-interface flows.
 
 **Rationale:** Separation enables business logic reuse across multiple interfaces, independent testing of business rules, and flexibility to add new interfaces (gRPC, WebSocket) without duplicating logic.
 
@@ -307,7 +294,8 @@ The system MUST be organized into distinct architectural layers with clear respo
 - HTTP/REST API: Request handling, routing, response formatting
 - CLI: Command-line argument parsing and output formatting
 - Scheduler: Background job triggering and scheduling logic
-- Each interface layer delegates to the business logic layer
+- Each interface layer delegates to the business logic layer by default, except
+  where the Single-Interface Scope/KISS Override applies
 
 **Infrastructure Layer:**
 - Service registration and dependency injection
@@ -382,7 +370,7 @@ This constitution supersedes all other development practices and documentation. 
    - MAJOR: Backward-incompatible principle removals or redefinitions
    - MINOR: New principles or materially expanded guidance
    - PATCH: Clarifications, wording fixes, non-semantic refinements
-4. All dependent templates (`plan-template.md`, `spec-template.md`, `tasks-template.md`) MUST be updated
+4. All dependent templates MUST be updated
 5. Sync Impact Report MUST be prepended to constitution as HTML comment
 6. `LAST_AMENDED_DATE` MUST be updated to current date
 
@@ -401,4 +389,4 @@ Projects SHOULD maintain separate operational documentation that complements thi
 
 The constitution remains stable and principle-focused, while implementation guides evolve with project-specific decisions and tooling.
 
-**Version**: 2.4.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2025-12-04
+**Version**: 3.0.0 | **Ratified**: 2025-11-27 | **Last Amended**: 2026-01-02
