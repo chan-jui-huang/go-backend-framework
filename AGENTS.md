@@ -258,7 +258,7 @@ This project uses [SpecKit](https://github.com/github/spec-kit) for specificatio
 
 ### Constitutional Authority
 
-**MANDATORY**: Before starting ANY development work, agents MUST read `.specify/memory/constitution.md`. This document contains the project's non-negotiable architectural principles and requirements that supersede all other guidance.
+**MANDATORY**: Before starting any development work or writing documentation that plans program implementation, agents MUST read `.specify/memory/constitution.md`. This document contains the project's non-negotiable architectural principles and requirements that supersede all other guidance. For all other situations, do NOT read the constitution unless the user explicitly asks.
 
 - Location: `.specify/memory/constitution.md`
 - Authority: Constitutional principles override any conflicting guidance in other documentation
