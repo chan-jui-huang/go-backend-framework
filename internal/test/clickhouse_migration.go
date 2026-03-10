@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 
+	ch "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
 	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
 	"github.com/chan-jui-huang/go-backend-package/pkg/clickhouse"
@@ -32,13 +33,22 @@ func (cm *clickhouseMigration) Run(callbacks ...func()) {
 		panic(err)
 	}
 
-	if _, err := conn.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", clickhouseConfig.Database)); err != nil {
+	if _, err := conn.Exec(
+		"CREATE DATABASE IF NOT EXISTS {database:Identifier}",
+		ch.Named("database", clickhouseConfig.Database),
+	); err != nil {
 		panic(err)
 	}
 
-	if _, err := conn.Exec(fmt.Sprintf("USE %s", clickhouseConfig.Database)); err != nil {
+	if err := conn.Close(); err != nil {
 		panic(err)
 	}
+
+	conn, err = sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s&database=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password, clickhouseConfig.Database))
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
 
 	if err := goose.SetDialect(string(goose.DialectClickHouse)); err != nil {
 		panic(err)
@@ -55,14 +65,11 @@ func (cm *clickhouseMigration) Run(callbacks ...func()) {
 
 func (cm *clickhouseMigration) Reset() {
 	clickhouseConfig := config.Registry.Get("clickhouse").(clickhouse.Config)
-	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password))
+	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s&database=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password, clickhouseConfig.Database))
 	if err != nil {
 		panic(err)
 	}
-
-	if _, err := conn.Exec(fmt.Sprintf("USE %s", clickhouseConfig.Database)); err != nil {
-		panic(err)
-	}
+	defer conn.Close()
 
 	if err := goose.SetDialect(string(goose.DialectClickHouse)); err != nil {
 		panic(err)
