@@ -32,7 +32,7 @@ type NewLoggersParams struct {
 	fx.In
 
 	BooterConfig  *booter.Config
-	LoggerConfig  LoggerConfigs
+	Default       string
 	ConsoleConfig *logger.Config `name:"logger.console"`
 	FileConfig    *logger.Config `name:"logger.file"`
 	AccessConfig  *logger.Config `name:"logger.access"`
@@ -81,7 +81,7 @@ func NewLoggers(params NewLoggersParams) (LoggerServices, error) {
 	}
 
 	defaultLogger := consoleLogger
-	switch params.LoggerConfig.Default {
+	switch params.Default {
 	case "file":
 		defaultLogger = fileLogger
 	case "access":

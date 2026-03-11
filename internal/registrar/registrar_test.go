@@ -3,110 +3,49 @@ package registrar_test
 import (
 	"testing"
 
-	_ "github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/spf13/viper"
-
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter/config"
 	"github.com/stretchr/testify/suite"
 )
 
-type RegisterExecutorTestSuite struct {
+type RegistrarTestSuite struct {
 	suite.Suite
-	booterConfig booter.Config
-	viper        viper.Viper
 }
 
-func (suite *RegisterExecutorTestSuite) SetupSuite() {
-	suite.booterConfig = deps.BooterConfig()
-	suite.viper = config.Registry.GetViper()
+func (suite *RegistrarTestSuite) SetupSuite() {
+	test.Setup(suite.T())
 }
 
-func (suite *RegisterExecutorTestSuite) TestRegisterExecutor() {
-	config.Registry = config.NewRegistry(&suite.viper)
-	config.Registry.Set("booter", &suite.booterConfig)
-	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
-	deps.SetService(deps.ServiceState{})
-
-	registrar.RegisterExecutor.BeforeExecute()
-	registrar.RegisterExecutor.Execute()
-	registrar.RegisterExecutor.AfterExecute()
-
-	suite.NotNil(config.Registry.Get("httpServer"))
-	suite.NotNil(config.Registry.Get("middleware.csrf"))
-	suite.NotNil(config.Registry.Get("middleware.rateLimit"))
-	suite.NotNil(config.Registry.Get("authentication.authenticator"))
-	suite.NotNil(config.Registry.Get("database"))
-	suite.NotNil(config.Registry.Get("logger.console"))
-	suite.NotNil(config.Registry.Get("logger.file"))
-	suite.NotNil(config.Registry.Get("logger.access"))
-	suite.NotNil(config.Registry.Get("redis"))
-	suite.NotNil(config.Registry.Get("clickhouse"))
-
+func (suite *RegistrarTestSuite) TestDependenciesRegistered() {
 	currentConfig := deps.CurrentConfig()
 	currentService := deps.CurrentService()
+	suite.NotNil(currentConfig.BooterConfig)
+	suite.NotNil(currentConfig.CsrfConfigValue)
+	suite.NotNil(currentConfig.RateLimitConfigValue)
 	suite.NotNil(currentConfig.AuthenticationConfig)
-	suite.NotNil(currentService.AuthenticatorValue)
 	suite.NotNil(currentConfig.DatabaseConfig)
+	suite.NotNil(currentConfig.RedisConfig)
+	suite.NotNil(currentConfig.ClickhouseConfig)
+	suite.NotNil(currentConfig.ConsoleLoggerConfig)
+	suite.NotNil(currentConfig.FileLoggerConfig)
+	suite.NotNil(currentConfig.AccessLoggerConfig)
+	suite.NotNil(currentService.AuthenticatorValue)
 	suite.NotNil(currentService.DatabaseValue)
+	suite.NotNil(currentService.RedisValue)
+	suite.NotNil(currentService.ClickhouseValue)
 	suite.NotNil(currentService.CasbinEnforcerValue)
 	suite.NotNil(currentService.LoggerValue)
 	suite.NotNil(currentService.ConsoleLogger)
 	suite.NotNil(currentService.FileLogger)
 	suite.NotNil(currentService.AccessLoggerValue)
-	suite.NotNil(currentConfig.RedisConfig)
-	suite.NotNil(currentService.RedisValue)
-	suite.NotNil(currentService.FormDecoder)
-	suite.NotNil(currentService.Modifier)
-	suite.NotNil(currentService.MapstructureDecoder)
-	suite.NotNil(currentConfig.ClickhouseConfig)
-	suite.NotNil(currentService.ClickhouseValue)
-}
-
-func (suite *RegisterExecutorTestSuite) TestSimpleRegisterExecutor() {
-	config.Registry = config.NewRegistry(&suite.viper)
-	config.Registry.Set("booter", &suite.booterConfig)
-	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
-	deps.SetService(deps.ServiceState{})
-
-	registrar.SimpleRegisterExecutor.BeforeExecute()
-	registrar.SimpleRegisterExecutor.Execute()
-	registrar.SimpleRegisterExecutor.AfterExecute()
-
-	suite.NotNil(config.Registry.Get("httpServer"))
-	suite.NotNil(config.Registry.Get("middleware.csrf"))
-	suite.NotNil(config.Registry.Get("middleware.rateLimit"))
-	suite.NotNil(config.Registry.Get("authentication.authenticator"))
-	suite.NotNil(config.Registry.Get("logger.console"))
-	suite.NotNil(config.Registry.Get("logger.file"))
-	suite.NotNil(config.Registry.Get("logger.access"))
-
-	currentConfig := deps.CurrentConfig()
-	currentService := deps.CurrentService()
-	suite.NotNil(currentConfig.AuthenticationConfig)
-	suite.NotNil(currentService.AuthenticatorValue)
-	suite.NotNil(currentService.ConsoleLogger)
-	suite.NotNil(currentService.FileLogger)
-	suite.NotNil(currentService.AccessLoggerValue)
 	suite.NotNil(currentService.FormDecoder)
 	suite.NotNil(currentService.Modifier)
 	suite.NotNil(currentService.MapstructureDecoder)
 }
 
-func (suite *RegisterExecutorTestSuite) TestValidatorRegistrarTagNameFunc() {
-	config.Registry = config.NewRegistry(&suite.viper)
-	config.Registry.Set("booter", &suite.booterConfig)
-	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
-	deps.SetService(deps.ServiceState{})
-
-	registrar.RegisterExecutor.BeforeExecute()
-	registrar.RegisterExecutor.Execute()
-	registrar.RegisterExecutor.AfterExecute()
-
+func (suite *RegistrarTestSuite) TestValidatorTagNameFunc() {
 	type dummy struct {
 		Email string `json:"email" binding:"required,email"`
 		Page  int    `form:"page" binding:"required,gt=0"`
@@ -138,17 +77,10 @@ func (suite *RegisterExecutorTestSuite) TestValidatorRegistrarTagNameFunc() {
 	}, fields)
 }
 
-func (suite *RegisterExecutorTestSuite) TearDownSuite() {
-	config.Registry = config.NewRegistry(&suite.viper)
-	config.Registry.Set("booter", &suite.booterConfig)
-	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
-	deps.SetService(deps.ServiceState{})
-
-	registrar.RegisterExecutor.BeforeExecute()
-	registrar.RegisterExecutor.Execute()
-	registrar.RegisterExecutor.AfterExecute()
+func (suite *RegistrarTestSuite) TearDownSuite() {
+	test.Shutdown()
 }
 
 func TestRegistrarTestSuite(t *testing.T) {
-	suite.Run(t, new(RegisterExecutorTestSuite))
+	suite.Run(t, new(RegistrarTestSuite))
 }

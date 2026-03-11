@@ -19,6 +19,7 @@ type PermissionCreateTestSuite struct {
 }
 
 func (suite *PermissionCreateTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 }
@@ -186,6 +187,7 @@ func (suite *PermissionCreateTestSuite) TestAuthorizationFailed() {
 
 func (suite *PermissionCreateTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestPermissionCreateTestSuite(t *testing.T) {

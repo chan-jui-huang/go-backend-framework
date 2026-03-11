@@ -18,6 +18,7 @@ type UserMeTestSuite struct {
 }
 
 func (suite *UserMeTestSuite) SetupSuite() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.UserService.Register()
 }
@@ -78,6 +79,7 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 
 func (suite *UserMeTestSuite) TearDownSuite() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestUserMeTestSuite(t *testing.T) {

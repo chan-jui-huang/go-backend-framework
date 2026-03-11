@@ -18,6 +18,7 @@ type UserUpdatePasswordTestSuite struct {
 }
 
 func (suite *UserUpdatePasswordTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.UserService.Register()
 }
@@ -141,6 +142,7 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 
 func (suite *UserUpdatePasswordTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestUserUpdatePasswordTestSuite(t *testing.T) {

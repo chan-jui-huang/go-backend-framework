@@ -23,6 +23,7 @@ type RoleDeleteTestSuite struct {
 }
 
 func (suite *RoleDeleteTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 }
@@ -178,6 +179,7 @@ func (suite *RoleDeleteTestSuite) TestAuthorizationFailed() {
 
 func (suite *RoleDeleteTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestRoleDeleteTestSuite(t *testing.T) {

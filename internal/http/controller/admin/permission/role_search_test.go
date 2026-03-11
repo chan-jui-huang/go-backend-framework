@@ -25,6 +25,7 @@ type RoleSearchTestSuite struct {
 }
 
 func (suite *RoleSearchTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 }
@@ -188,6 +189,7 @@ func (suite *RoleSearchTestSuite) TestAuthorizationFailed() {
 
 func (suite *RoleSearchTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestRoleSearchTestSuite(t *testing.T) {

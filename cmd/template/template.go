@@ -1,7 +1,7 @@
 package main
 
 import (
-	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/cmd/app/registrar"
+	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
 	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/fx"

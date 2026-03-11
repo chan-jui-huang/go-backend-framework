@@ -24,6 +24,7 @@ type RoleCreateTestSuite struct {
 }
 
 func (suite *RoleCreateTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 }
@@ -195,6 +196,7 @@ func (suite *RoleCreateTestSuite) TestAuthorizationFailed() {
 
 func (suite *RoleCreateTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestRoleCreateTestSuite(t *testing.T) {

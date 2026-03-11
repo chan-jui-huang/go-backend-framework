@@ -9,8 +9,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/fx"
 
-	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/cmd/app/registrar"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/migration/rdbms/seeder"
+	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
 	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 )
 

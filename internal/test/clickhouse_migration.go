@@ -62,6 +62,10 @@ func (cm *clickhouseMigration) Run(callbacks ...func()) {
 }
 
 func (cm *clickhouseMigration) Reset() {
+	if cm == nil {
+		return
+	}
+
 	clickhouseConfig := deps.ClickhouseConfig()
 	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s&database=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password, clickhouseConfig.Database))
 	if err != nil {

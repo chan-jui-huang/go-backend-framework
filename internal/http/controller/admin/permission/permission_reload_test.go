@@ -16,6 +16,7 @@ type PermissionReloadTestSuite struct {
 }
 
 func (suite *PermissionReloadTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 }
@@ -89,6 +90,7 @@ func (suite *PermissionReloadTestSuite) TestAuthorizationFailed() {
 
 func (suite *PermissionReloadTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestPermissionReloadTestSuite(t *testing.T) {

@@ -42,6 +42,10 @@ func (rm *rdbmsMigration) Run(callbacks ...func()) {
 }
 
 func (rm *rdbmsMigration) Reset() {
+	if rm == nil {
+		return
+	}
+
 	databaseConfig := deps.DatabaseConfig()
 	database := deps.Database()
 	db, err := database.DB()

@@ -24,6 +24,7 @@ type PermissionDeleteTestSuite struct {
 }
 
 func (suite *PermissionDeleteTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 
@@ -174,6 +175,7 @@ func (suite *PermissionDeleteTestSuite) TestAuthorizationFailed() {
 
 func (suite *PermissionDeleteTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestPermissionDeleteTestSuite(t *testing.T) {

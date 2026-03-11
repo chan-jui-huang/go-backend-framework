@@ -19,6 +19,7 @@ type UserUpdateTestSuite struct {
 }
 
 func (suite *UserUpdateTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.UserService.Register()
 }
@@ -115,6 +116,7 @@ func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
 
 func (suite *UserUpdateTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestUserUpdateTestSuite(t *testing.T) {

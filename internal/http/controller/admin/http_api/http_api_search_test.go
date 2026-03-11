@@ -24,6 +24,7 @@ type HttpApiSearchTestSuite struct {
 }
 
 func (suite *HttpApiSearchTestSuite) SetupTest() {
+	test.Setup(suite.T())
 	test.RdbmsMigration.Run()
 	test.AdminService.Register()
 }
@@ -162,6 +163,7 @@ func (suite *HttpApiSearchTestSuite) TestAuthorizationFailed() {
 
 func (suite *HttpApiSearchTestSuite) TearDownTest() {
 	test.RdbmsMigration.Reset()
+	test.Shutdown()
 }
 
 func TestHttpApiSearchTestSuite(t *testing.T) {
