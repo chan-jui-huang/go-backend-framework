@@ -1,6 +1,9 @@
 package main
 
 import (
+	"time"
+
+	internalhttp "github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/go-playground/form/v4"
@@ -17,11 +20,16 @@ func main() {
 	booterConfig := booter.NewConfigWithCommand()
 
 	fx.New(
+		fx.StopTimeout(60*time.Second),
 		fx.Supply(booterConfig),
 		fx.Provide(
 			registrar.NewConfigLoader,
 			registrar.NewHttpServerConfig,
-			registrar.NewHttpServer,
+			fx.Annotate(
+				registrar.NewHttpServer,
+				fx.OnStart(registrar.HttpServerOnStart),
+				fx.OnStop(registrar.HttpServerOnStop),
+			),
 			registrar.NewCsrfConfig,
 			registrar.NewRateLimitConfig,
 			registrar.NewAuthenticationConfig,
@@ -40,9 +48,18 @@ func main() {
 			modifiers.New,
 		),
 		fx.Invoke(
+			fx.Annotate(
+				func() {},
+				fx.OnStart(registrar.ValidatorOnStart),
+			),
+			fx.Annotate(
+				func() {},
+				fx.OnStart(registrar.SchedulerOnStart),
+				fx.OnStop(registrar.SchedulerOnStop),
+			),
 			registrar.RegisterConfigDependencies,
 			registrar.RegisterServiceDependencies,
-			registrar.RegisterValidator,
+			func(*internalhttp.Server) {},
 		),
 	).Run()
 }

@@ -71,15 +71,6 @@ func (srv *Server) Run() {
 	}
 }
 
-func (srv *Server) GracefulShutdown(ctx context.Context) {
-	<-ctx.Done()
-
-	if err := srv.Shutdown(context.Background()); err != nil {
-		logger := deps.Logger()
-		logger.Error(err.Error())
-	}
-}
-
 func (srv *Server) Shutdown(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, srv.config.GracefulShutdownTtl)
 	defer cancel()

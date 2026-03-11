@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
@@ -40,6 +41,7 @@ func Setup(tb testing.TB) {
 
 	testApp = fxtest.New(
 		tb,
+		fx.StopTimeout(60*time.Second),
 		fx.Supply(booterConfig),
 		fx.Provide(
 			registrar.NewConfigLoader,
@@ -62,9 +64,12 @@ func Setup(tb testing.TB) {
 			modifiers.New,
 		),
 		fx.Invoke(
+			fx.Annotate(
+				func() {},
+				fx.OnStart(registrar.ValidatorOnStart),
+			),
 			registrar.RegisterConfigDependencies,
 			registrar.RegisterServiceDependencies,
-			registrar.RegisterValidator,
 		),
 	)
 	testApp.RequireStart()

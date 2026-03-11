@@ -3,11 +3,9 @@ package registrar
 import (
 	"context"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/scheduler"
 	booterconfig "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter/config"
-	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 func NewHttpServerConfig(loader *booterconfig.Loader) *http.ServerConfig {
@@ -17,29 +15,26 @@ func NewHttpServerConfig(loader *booterconfig.Loader) *http.ServerConfig {
 	return config
 }
 
-func NewHttpServer(config *http.ServerConfig, logger *zap.Logger, lc fx.Lifecycle) *http.Server {
-	server := http.NewServer(*config)
+func NewHttpServer(config *http.ServerConfig) *http.Server {
+	return http.NewServer(*config)
+}
 
-	lc.Append(fx.Hook{
-		OnStart: func(context.Context) error {
-			logger.Info("app is starting")
-			go server.Run()
-			logger.Info("app is started")
-			scheduler.Start()
+func HttpServerOnStart(_ context.Context, server *http.Server) error {
+	logger := deps.Logger()
+	logger.Info("app is starting")
+	go server.Run()
+	logger.Info("app is started")
 
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			logger.Info("app is terminating")
-			scheduler.Stop()
-			if err := server.Shutdown(ctx); err != nil {
-				return err
-			}
-			logger.Info("app is terminated")
+	return nil
+}
 
-			return nil
-		},
-	})
+func HttpServerOnStop(ctx context.Context, server *http.Server) error {
+	logger := deps.Logger()
+	logger.Info("app is terminating")
+	if err := server.Shutdown(ctx); err != nil {
+		return err
+	}
+	logger.Info("app is terminated")
 
-	return server
+	return nil
 }
