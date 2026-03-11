@@ -1,9 +1,8 @@
 package scheduler
 
 import (
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/scheduler"
-	"go.uber.org/zap"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/scheduler"
 )
 
 func backlogJobs() {
@@ -16,13 +15,13 @@ func Start() {
 	backlogJobs()
 	scheduler.Scheduler.Start()
 
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	logger.Info("scheduler is started")
 }
 
 func Stop() {
 	<-scheduler.Scheduler.Stop().Done()
 
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	logger.Info("scheduler is stopped")
 }

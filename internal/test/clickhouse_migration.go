@@ -6,9 +6,7 @@ import (
 	"path"
 
 	ch "github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/clickhouse"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/pressly/goose/v3"
 )
 
@@ -19,7 +17,7 @@ type clickhouseMigration struct {
 var ClickhouseMigration *clickhouseMigration
 
 func NewClickhouseMigration() *clickhouseMigration {
-	booterConfig := config.Registry.Get("booter").(booter.Config)
+	booterConfig := deps.BooterConfig()
 
 	return &clickhouseMigration{
 		dir: path.Join(booterConfig.RootDir, "internal/migration/clickhouse/test"),
@@ -27,7 +25,7 @@ func NewClickhouseMigration() *clickhouseMigration {
 }
 
 func (cm *clickhouseMigration) Run(callbacks ...func()) {
-	clickhouseConfig := config.Registry.Get("clickhouse").(clickhouse.Config)
+	clickhouseConfig := deps.ClickhouseConfig()
 	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password))
 	if err != nil {
 		panic(err)
@@ -64,7 +62,7 @@ func (cm *clickhouseMigration) Run(callbacks ...func()) {
 }
 
 func (cm *clickhouseMigration) Reset() {
-	clickhouseConfig := config.Registry.Get("clickhouse").(clickhouse.Config)
+	clickhouseConfig := deps.ClickhouseConfig()
 	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s&database=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password, clickhouseConfig.Database))
 	if err != nil {
 		panic(err)

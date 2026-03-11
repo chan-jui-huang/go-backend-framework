@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -58,6 +58,5 @@ func NewConfig(wd string, configFile string) func() *booter.Config {
 }
 
 func emptyMockedServices() {
-	// If you register a new mock in the registry, add an empty instance here.
-	// service.Registry.Set("thirdParty.service", &struct{}{})
+	// If you register a new mock dependency, initialize its empty test value here.
 }

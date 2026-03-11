@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/pagination"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/pagination"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +39,7 @@ type RoleSearchData struct {
 // @router /api/admin/role [get]
 func SearchRoles(c *gin.Context) {
 	queryString := new(RoleSearchRequest)
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	if err := c.ShouldBindQuery(queryString); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)

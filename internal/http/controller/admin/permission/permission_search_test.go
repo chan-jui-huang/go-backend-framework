@@ -8,14 +8,14 @@ import (
 	"testing"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/admin/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/pagination"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/pagination"
 	"github.com/gorilla/schema"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
@@ -83,7 +83,7 @@ func (suite *PermissionSearchTestSuite) Test() {
 		panic(err)
 	}
 
-	decoder := service.Registry.Get("mapstructureDecoder").(func(any, any) error)
+	decoder := deps.MapstructureDecoder()
 	data := &permission.PermissionSearchData{}
 	if err := decoder(respBody.Data, data); err != nil {
 		panic(err)

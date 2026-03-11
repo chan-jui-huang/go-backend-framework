@@ -1,75 +1,48 @@
 package main
 
 import (
-	"os"
-	"syscall"
-
+	"github.com/chan-jui-huang/go-backend-framework/v2/cmd/app/registrar"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/go-playground/form/v4"
+	"github.com/go-playground/mold/v4/modifiers"
 	_ "github.com/joho/godotenv/autoload"
-	"go.uber.org/zap"
-
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/scheduler"
-	"github.com/chan-jui-huang/go-backend-package/pkg/app"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"go.uber.org/fx"
 )
-
-func init() {
-	booter.Boot(
-		func() {},
-		booter.NewConfigWithCommand,
-		&registrar.RegisterExecutor,
-	)
-}
 
 // @title Example API
 // @version 1.0
 // @schemes http https
 // @host localhost:8080
 func main() {
-	httpServer := http.NewServer(config.Registry.Get("httpServer").(http.ServerConfig))
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	booterConfig := booter.NewConfigWithCommand()
 
-	startingCallbacks := []func(){
-		func() {
-			logger.Info("app is starting")
-		},
-	}
-	startedCallbacks := []func(){
-		func() {
-			logger.Info("app is started")
-		},
-		scheduler.Start,
-	}
-	signalCallbacks := []app.SignalCallback{
-		{
-			Signals: []os.Signal{
-				syscall.SIGINT,
-				syscall.SIGTERM,
-			},
-			CallbackFunc: httpServer.GracefulShutdown,
-		},
-	}
-	asyncCallbacks := []func(){}
-	terminatedCallbacks := []func(){
-		func() {
-			logger.Info("app is terminating")
-		},
-		scheduler.Stop,
-		func() {
-			logger.Info("app is terminated")
-		},
-	}
-
-	app := app.New(
-		startingCallbacks,
-		startedCallbacks,
-		signalCallbacks,
-		asyncCallbacks,
-		terminatedCallbacks,
-	)
-
-	app.Run(httpServer.Run)
+	fx.New(
+		fx.Supply(booterConfig),
+		fx.Provide(
+			registrar.NewConfigLoader,
+			registrar.NewHttpServerConfig,
+			registrar.NewHttpServer,
+			registrar.NewCsrfConfig,
+			registrar.NewRateLimitConfig,
+			registrar.NewAuthenticationConfig,
+			registrar.NewAuthenticator,
+			registrar.NewDatabaseConfig,
+			registrar.NewDatabase,
+			registrar.NewRedisConfig,
+			registrar.NewRedis,
+			registrar.NewClickhouseConfig,
+			registrar.NewClickhouse,
+			registrar.NewLoggerConfigs,
+			registrar.NewLoggers,
+			registrar.NewCasbinEnforcer,
+			registrar.NewMapstructureDecoder,
+			form.NewDecoder,
+			modifiers.New,
+		),
+		fx.Invoke(
+			registrar.RegisterConfigDependencies,
+			registrar.RegisterServiceDependencies,
+			registrar.RegisterValidator,
+		),
+	).Run()
 }

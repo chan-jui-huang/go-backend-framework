@@ -3,12 +3,11 @@ package permission
 import (
 	"net/http"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type PermissionGetData struct {
@@ -29,7 +28,7 @@ type PermissionGetData struct {
 // @router /api/admin/permission/{id} [get]
 func Get(c *gin.Context) {
 	p, err := permission.Get(database.NewTx(), "id = ?", c.Param("id"))
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)

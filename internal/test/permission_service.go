@@ -3,13 +3,12 @@ package test
 import (
 	"fmt"
 
-	"github.com/casbin/casbin/v3"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"gorm.io/gorm"
 )
 
@@ -87,7 +86,7 @@ func (ps *permissionService) AddPermissions() {
 		panic(err)
 	}
 
-	enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}
@@ -125,7 +124,7 @@ func (ps *permissionService) GrantRoleToUser(userId uint, roleName string) {
 		panic(err)
 	}
 
-	enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}
@@ -161,7 +160,7 @@ func (ps *permissionService) GrantAdminToAdminUser() {
 		panic(err)
 	}
 
-	enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}

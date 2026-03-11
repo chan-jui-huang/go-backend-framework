@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/logger"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter/config"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/logger"
 )
 
 type LoggerRegistrar struct {
@@ -38,7 +37,7 @@ func (lr *LoggerRegistrar) Register() {
 		panic(err)
 	}
 
-	booterConfig := config.Registry.Get("booter").(booter.Config)
+	booterConfig := deps.BooterConfig()
 	lr.fileConfig.LogPath = path.Join(booterConfig.RootDir, lr.fileConfig.LogPath)
 	fileLogger, err := logger.NewLogger(
 		lr.fileConfig,
@@ -57,22 +56,34 @@ func (lr *LoggerRegistrar) Register() {
 	if err != nil {
 		panic(err)
 	}
-	service.Registry.SetMany(map[string]any{
-		"logger.console": consoleLogger,
-		"logger.file":    fileLogger,
-		"logger.access":  accessLogger,
-	})
-
 	v := config.Registry.GetViper()
 	settings := v.Sub("logger").AllSettings()
 	defaultSetting := v.GetString("logger.default")
+	defaultLogger := consoleLogger
 
 	for setting := range settings {
 		if defaultSetting == setting {
-			service.Registry.Set(
-				"logger",
-				service.Registry.Get(fmt.Sprintf("logger.%s", defaultSetting)),
-			)
+			switch fmt.Sprintf("logger.%s", defaultSetting) {
+			case "logger.file":
+				defaultLogger = fileLogger
+			case "logger.access":
+				defaultLogger = accessLogger
+			default:
+				defaultLogger = consoleLogger
+			}
 		}
 	}
+
+	current := deps.CurrentConfig()
+	current.ConsoleLoggerConfig = &lr.consoleConfig
+	current.FileLoggerConfig = &lr.fileConfig
+	current.AccessLoggerConfig = &lr.accessConfig
+	deps.SetConfig(current)
+
+	serviceState := deps.CurrentService()
+	serviceState.LoggerValue = defaultLogger
+	serviceState.ConsoleLogger = consoleLogger
+	serviceState.FileLogger = fileLogger
+	serviceState.AccessLoggerValue = accessLogger
+	deps.SetService(serviceState)
 }

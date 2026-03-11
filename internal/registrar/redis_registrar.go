@@ -1,9 +1,9 @@
 package registrar
 
 import (
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/redis"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter/config"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/redis"
 )
 
 type RedisRegistrar struct {
@@ -15,5 +15,11 @@ func (rr *RedisRegistrar) Boot() {
 }
 
 func (rr *RedisRegistrar) Register() {
-	service.Registry.Set("redis", redis.New(rr.config))
+	current := deps.CurrentConfig()
+	current.RedisConfig = &rr.config
+	deps.SetConfig(current)
+
+	serviceState := deps.CurrentService()
+	serviceState.RedisValue = redis.New(rr.config)
+	deps.SetService(serviceState)
 }

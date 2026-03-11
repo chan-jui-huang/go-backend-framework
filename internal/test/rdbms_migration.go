@@ -3,13 +3,8 @@ package test
 import (
 	"path"
 
-	"github.com/casbin/casbin/v3"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/database"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/pressly/goose/v3"
-	"gorm.io/gorm"
 )
 
 type rdbmsMigration struct {
@@ -19,7 +14,7 @@ type rdbmsMigration struct {
 var RdbmsMigration *rdbmsMigration
 
 func NewRdbmsMigration() *rdbmsMigration {
-	booterConfig := config.Registry.Get("booter").(booter.Config)
+	booterConfig := deps.BooterConfig()
 
 	return &rdbmsMigration{
 		dir: path.Join(booterConfig.RootDir, "internal/migration/rdbms/test"),
@@ -27,8 +22,8 @@ func NewRdbmsMigration() *rdbmsMigration {
 }
 
 func (rm *rdbmsMigration) Run(callbacks ...func()) {
-	databaseConfig := config.Registry.Get("database").(database.Config)
-	database := service.Registry.Get("database").(*gorm.DB)
+	databaseConfig := deps.DatabaseConfig()
+	database := deps.Database()
 	db, err := database.DB()
 	if err != nil {
 		panic(err)
@@ -47,8 +42,8 @@ func (rm *rdbmsMigration) Run(callbacks ...func()) {
 }
 
 func (rm *rdbmsMigration) Reset() {
-	databaseConfig := config.Registry.Get("database").(database.Config)
-	database := service.Registry.Get("database").(*gorm.DB)
+	databaseConfig := deps.DatabaseConfig()
+	database := deps.Database()
 	db, err := database.DB()
 	if err != nil {
 		panic(err)
@@ -67,7 +62,7 @@ func (rm *rdbmsMigration) Reset() {
 		panic(err)
 	}
 
-	enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}

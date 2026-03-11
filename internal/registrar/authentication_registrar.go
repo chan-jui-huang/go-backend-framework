@@ -1,9 +1,9 @@
 package registrar
 
 import (
-	"github.com/chan-jui-huang/go-backend-package/pkg/authentication"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter/config"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
 )
 
 type AuthenticationRegistrar struct {
@@ -20,5 +20,11 @@ func (ar *AuthenticationRegistrar) Register() {
 		panic(err)
 	}
 
-	service.Registry.Set("authentication.authenticator", authenticator)
+	current := deps.CurrentConfig()
+	current.AuthenticationConfig = &ar.config
+	deps.SetConfig(current)
+
+	serviceState := deps.CurrentService()
+	serviceState.AuthenticatorValue = authenticator
+	deps.SetService(serviceState)
 }

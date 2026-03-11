@@ -3,10 +3,10 @@ package test
 import (
 	"net/http"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	pkgHttp "github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,7 +45,7 @@ func NewHttpHandler() *httpHandler {
 }
 
 func (handler *httpHandler) AttachGlobalMiddleware() {
-	csrfConfig := config.Registry.Get("middleware.csrf").(middleware.CsrfConfig)
+	csrfConfig := deps.CsrfConfig().(middleware.CsrfConfig)
 
 	handlerFunctions := []gin.HandlerFunc{
 		middleware.VerifyCsrfToken(csrfConfig),
@@ -61,7 +61,7 @@ func (handler *httpHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 }
 
 func AddCsrfToken(req *http.Request) {
-	config := config.Registry.Get("middleware.csrf").(middleware.CsrfConfig)
+	config := deps.CsrfConfig().(middleware.CsrfConfig)
 	cookie := &http.Cookie{
 		Name:     config.Cookie.Name,
 		Value:    "1234567890",

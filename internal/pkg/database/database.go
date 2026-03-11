@@ -1,12 +1,12 @@
 package database
 
 import (
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"gorm.io/gorm"
 )
 
 func NewTx(associations ...string) *gorm.DB {
-	tx := service.Registry.Get("database").(*gorm.DB)
+	tx := deps.Database()
 	for _, association := range associations {
 		tx = tx.Preload(association)
 	}
@@ -15,7 +15,7 @@ func NewTx(associations ...string) *gorm.DB {
 }
 
 func NewTxByTable(table string, associations ...string) *gorm.DB {
-	database := service.Registry.Get("database").(*gorm.DB)
+	database := deps.Database()
 	tx := database.Table(table)
 
 	for _, association := range associations {

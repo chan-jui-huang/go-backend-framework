@@ -3,15 +3,14 @@ package user
 import (
 	"net/http"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
-	"github.com/chan-jui-huang/go-backend-package/pkg/argon2"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 type UserUpdatePasswordRequest struct {
@@ -32,7 +31,7 @@ type UserUpdatePasswordRequest struct {
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/user/password [put]
 func UpdatePassword(c *gin.Context) {
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	reqBody := new(UserUpdatePasswordRequest)
 	if err := c.ShouldBindJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))

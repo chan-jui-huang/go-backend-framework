@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -43,5 +43,7 @@ func (mdr *MapstructureDecoderRegistrar) Boot() {
 }
 
 func (mdr *MapstructureDecoderRegistrar) Register() {
-	service.Registry.Set("mapstructureDecoder", mdr.decodeFunc)
+	current := deps.CurrentService()
+	current.MapstructureDecoder = mdr.decodeFunc
+	deps.SetService(current)
 }

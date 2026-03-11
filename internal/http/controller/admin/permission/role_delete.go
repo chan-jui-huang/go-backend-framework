@@ -3,14 +3,12 @@ package permission
 import (
 	"net/http"
 
-	"github.com/casbin/casbin/v3"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -33,7 +31,7 @@ type RoleDeleteRequest struct {
 // @router /api/admin/role [delete]
 func DeleteRoles(c *gin.Context) {
 	reqBody := new(RoleDeleteRequest)
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	if err := c.ShouldBindJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
@@ -88,7 +86,7 @@ func DeleteRoles(c *gin.Context) {
 		return
 	}
 
-	enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)

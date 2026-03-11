@@ -5,16 +5,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
-	"github.com/chan-jui-huang/go-backend-package/pkg/argon2"
-	"github.com/chan-jui-huang/go-backend-package/pkg/authentication"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 type UserLoginRequest struct {
@@ -33,7 +31,7 @@ type UserLoginRequest struct {
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/user/login [post]
 func Login(c *gin.Context) {
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	reqBody := new(UserLoginRequest)
 	if err := c.ShouldBindJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
@@ -68,7 +66,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	authenticator := service.Registry.Get("authentication.authenticator").(*authentication.Authenticator)
+	authenticator := deps.Authenticator()
 	accessToken, err := authenticator.IssueAccessToken(values.Encode())
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)

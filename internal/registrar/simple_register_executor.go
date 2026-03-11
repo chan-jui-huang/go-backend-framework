@@ -1,11 +1,11 @@
 package registrar
 
 import (
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter/config"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/mold/v4/modifiers"
 )
@@ -28,6 +28,10 @@ func (*simpleRegisterExecutor) BeforeExecute() {
 		"middleware.csrf":      &middleware.CsrfConfig{},
 		"middleware.rateLimit": &middleware.RateLimitConfig{},
 	})
+	currentConfig := deps.CurrentConfig()
+	currentConfig.CsrfConfigValue = config.Registry.Get("middleware.csrf").(middleware.CsrfConfig)
+	currentConfig.RateLimitConfigValue = config.Registry.Get("middleware.rateLimit").(middleware.RateLimitConfig)
+	deps.SetConfig(currentConfig)
 }
 
 func (sre *simpleRegisterExecutor) Execute() {
@@ -35,8 +39,8 @@ func (sre *simpleRegisterExecutor) Execute() {
 }
 
 func (*simpleRegisterExecutor) AfterExecute() {
-	service.Registry.SetMany(map[string]any{
-		"formDecoder": form.NewDecoder(),
-		"modifier":    modifiers.New(),
-	})
+	current := deps.CurrentService()
+	current.FormDecoder = form.NewDecoder()
+	current.Modifier = modifiers.New()
+	deps.SetService(current)
 }

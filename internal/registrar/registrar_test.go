@@ -8,10 +8,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-framework/v2/pkg/booter/config"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,18 +22,19 @@ type RegisterExecutorTestSuite struct {
 }
 
 func (suite *RegisterExecutorTestSuite) SetupSuite() {
-	suite.booterConfig = config.Registry.Get("booter").(booter.Config)
+	suite.booterConfig = deps.BooterConfig()
 	suite.viper = config.Registry.GetViper()
 }
 
 func (suite *RegisterExecutorTestSuite) TestRegisterExecutor() {
 	config.Registry = config.NewRegistry(&suite.viper)
 	config.Registry.Set("booter", &suite.booterConfig)
-	service.Registry = service.NewRegistry()
+	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
+	deps.SetService(deps.ServiceState{})
 
-	registrar.RegisterExecutor.AfterExecute()
-	registrar.RegisterExecutor.Execute()
 	registrar.RegisterExecutor.BeforeExecute()
+	registrar.RegisterExecutor.Execute()
+	registrar.RegisterExecutor.AfterExecute()
 
 	suite.NotNil(config.Registry.Get("httpServer"))
 	suite.NotNil(config.Registry.Get("middleware.csrf"))
@@ -46,28 +47,35 @@ func (suite *RegisterExecutorTestSuite) TestRegisterExecutor() {
 	suite.NotNil(config.Registry.Get("redis"))
 	suite.NotNil(config.Registry.Get("clickhouse"))
 
-	suite.NotNil(service.Registry.Get("authentication.authenticator"))
-	suite.NotNil(service.Registry.Get("database"))
-	suite.NotNil(service.Registry.Get("casbinEnforcer"))
-	suite.NotNil(service.Registry.Get("logger"))
-	suite.NotNil(service.Registry.Get("logger.console"))
-	suite.NotNil(service.Registry.Get("logger.file"))
-	suite.NotNil(service.Registry.Get("logger.access"))
-	suite.NotNil(service.Registry.Get("redis"))
-	suite.NotNil(service.Registry.Get("formDecoder"))
-	suite.NotNil(service.Registry.Get("modifier"))
-	suite.NotNil(service.Registry.Get("mapstructureDecoder"))
-	suite.NotNil(service.Registry.Get("clickhouse"))
+	currentConfig := deps.CurrentConfig()
+	currentService := deps.CurrentService()
+	suite.NotNil(currentConfig.AuthenticationConfig)
+	suite.NotNil(currentService.AuthenticatorValue)
+	suite.NotNil(currentConfig.DatabaseConfig)
+	suite.NotNil(currentService.DatabaseValue)
+	suite.NotNil(currentService.CasbinEnforcerValue)
+	suite.NotNil(currentService.LoggerValue)
+	suite.NotNil(currentService.ConsoleLogger)
+	suite.NotNil(currentService.FileLogger)
+	suite.NotNil(currentService.AccessLoggerValue)
+	suite.NotNil(currentConfig.RedisConfig)
+	suite.NotNil(currentService.RedisValue)
+	suite.NotNil(currentService.FormDecoder)
+	suite.NotNil(currentService.Modifier)
+	suite.NotNil(currentService.MapstructureDecoder)
+	suite.NotNil(currentConfig.ClickhouseConfig)
+	suite.NotNil(currentService.ClickhouseValue)
 }
 
 func (suite *RegisterExecutorTestSuite) TestSimpleRegisterExecutor() {
 	config.Registry = config.NewRegistry(&suite.viper)
 	config.Registry.Set("booter", &suite.booterConfig)
-	service.Registry = service.NewRegistry()
+	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
+	deps.SetService(deps.ServiceState{})
 
-	registrar.SimpleRegisterExecutor.AfterExecute()
-	registrar.SimpleRegisterExecutor.Execute()
 	registrar.SimpleRegisterExecutor.BeforeExecute()
+	registrar.SimpleRegisterExecutor.Execute()
+	registrar.SimpleRegisterExecutor.AfterExecute()
 
 	suite.NotNil(config.Registry.Get("httpServer"))
 	suite.NotNil(config.Registry.Get("middleware.csrf"))
@@ -77,23 +85,27 @@ func (suite *RegisterExecutorTestSuite) TestSimpleRegisterExecutor() {
 	suite.NotNil(config.Registry.Get("logger.file"))
 	suite.NotNil(config.Registry.Get("logger.access"))
 
-	suite.NotNil(service.Registry.Get("authentication.authenticator"))
-	suite.NotNil(service.Registry.Get("logger.console"))
-	suite.NotNil(service.Registry.Get("logger.file"))
-	suite.NotNil(service.Registry.Get("logger.access"))
-	suite.NotNil(service.Registry.Get("formDecoder"))
-	suite.NotNil(service.Registry.Get("modifier"))
-	suite.NotNil(service.Registry.Get("mapstructureDecoder"))
+	currentConfig := deps.CurrentConfig()
+	currentService := deps.CurrentService()
+	suite.NotNil(currentConfig.AuthenticationConfig)
+	suite.NotNil(currentService.AuthenticatorValue)
+	suite.NotNil(currentService.ConsoleLogger)
+	suite.NotNil(currentService.FileLogger)
+	suite.NotNil(currentService.AccessLoggerValue)
+	suite.NotNil(currentService.FormDecoder)
+	suite.NotNil(currentService.Modifier)
+	suite.NotNil(currentService.MapstructureDecoder)
 }
 
 func (suite *RegisterExecutorTestSuite) TestValidatorRegistrarTagNameFunc() {
 	config.Registry = config.NewRegistry(&suite.viper)
 	config.Registry.Set("booter", &suite.booterConfig)
-	service.Registry = service.NewRegistry()
+	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
+	deps.SetService(deps.ServiceState{})
 
-	registrar.RegisterExecutor.AfterExecute()
-	registrar.RegisterExecutor.Execute()
 	registrar.RegisterExecutor.BeforeExecute()
+	registrar.RegisterExecutor.Execute()
+	registrar.RegisterExecutor.AfterExecute()
 
 	type dummy struct {
 		Email string `json:"email" binding:"required,email"`
@@ -129,11 +141,12 @@ func (suite *RegisterExecutorTestSuite) TestValidatorRegistrarTagNameFunc() {
 func (suite *RegisterExecutorTestSuite) TearDownSuite() {
 	config.Registry = config.NewRegistry(&suite.viper)
 	config.Registry.Set("booter", &suite.booterConfig)
-	service.Registry = service.NewRegistry()
+	deps.SetConfig(deps.ConfigState{BooterConfig: &suite.booterConfig})
+	deps.SetService(deps.ServiceState{})
 
-	registrar.RegisterExecutor.AfterExecute()
-	registrar.RegisterExecutor.Execute()
 	registrar.RegisterExecutor.BeforeExecute()
+	registrar.RegisterExecutor.Execute()
+	registrar.RegisterExecutor.AfterExecute()
 }
 
 func TestRegistrarTestSuite(t *testing.T) {

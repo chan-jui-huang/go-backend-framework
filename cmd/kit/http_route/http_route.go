@@ -3,21 +3,36 @@ package main
 import (
 	"fmt"
 
+	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/cmd/app/registrar"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
+	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/fx"
 )
 
-func init() {
-	booter.Boot(
-		func() {},
-		booter.NewDefaultConfig,
-		&registrar.SimpleRegisterExecutor,
-	)
-}
-
 func main() {
+	fxApp := fx.New(
+		fx.Supply(booter.NewDefaultConfig()),
+		fx.Provide(
+			appregistrar.NewConfigLoader,
+			appregistrar.NewAuthenticationConfig,
+			appregistrar.NewAuthenticator,
+			appregistrar.NewDatabaseConfig,
+			appregistrar.NewDatabase,
+			appregistrar.NewLoggerConfigs,
+			appregistrar.NewLoggers,
+			appregistrar.NewCasbinEnforcer,
+			appregistrar.NewMapstructureDecoder,
+		),
+		fx.Invoke(
+			appregistrar.RegisterConfigDependencies,
+			appregistrar.RegisterServiceDependencies,
+		),
+	)
+	if err := fxApp.Err(); err != nil {
+		panic(err)
+	}
+
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	routers := []route.Router{

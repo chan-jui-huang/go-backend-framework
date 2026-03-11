@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -14,7 +14,7 @@ func AccessLogger() gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/skip-path": true,
 	}
-	accessLogger := service.Registry.Get("logger.access").(*zap.Logger)
+	accessLogger := deps.AccessLogger()
 
 	return func(c *gin.Context) {
 		now := time.Now()

@@ -4,8 +4,7 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"gorm.io/gorm"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 )
 
 type CasbinRegistrar struct{}
@@ -15,7 +14,7 @@ func (*CasbinRegistrar) Boot() {
 
 func (*CasbinRegistrar) Register() {
 	adapter, err := gormadapter.NewAdapterByDBUseTableName(
-		service.Registry.Get("database").(*gorm.DB),
+		deps.Database(),
 		"",
 		"casbin_rules",
 	)
@@ -48,5 +47,7 @@ m = g(r.sub, p.sub) && keyMatch2(r.obj, p.obj) && r.act == p.act
 		panic(err)
 	}
 
-	service.Registry.Set("casbinEnforcer", enforcer)
+	current := deps.CurrentService()
+	current.CasbinEnforcerValue = enforcer
+	deps.SetService(current)
 }

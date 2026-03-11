@@ -7,21 +7,30 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/fx"
 
+	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/cmd/app/registrar"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/migration/rdbms/seeder"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
+	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 )
 
-func init() {
-	booter.Boot(
-		func() {},
-		booter.NewDefaultConfig,
-		&registrar.RegisterExecutor,
-	)
-}
-
 func main() {
+	fxApp := fx.New(
+		fx.Supply(booter.NewDefaultConfig()),
+		fx.Provide(
+			appregistrar.NewConfigLoader,
+			appregistrar.NewDatabaseConfig,
+			appregistrar.NewDatabase,
+		),
+		fx.Invoke(
+			appregistrar.RegisterConfigDependencies,
+			appregistrar.RegisterServiceDependencies,
+		),
+	)
+	if err := fxApp.Err(); err != nil {
+		panic(err)
+	}
+
 	seederExecutor := seeder.NewSeederExecutor()
 
 	app := &cli.App{

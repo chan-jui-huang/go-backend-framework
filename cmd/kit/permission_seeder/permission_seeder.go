@@ -8,26 +8,18 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/fx"
 	"gorm.io/gorm"
 
-	"github.com/casbin/casbin/v3"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/cmd/app/registrar"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 )
-
-func init() {
-	booter.Boot(
-		func() {},
-		booter.NewDefaultConfig,
-		&registrar.RegisterExecutor,
-	)
-}
 
 type permissionSeeder struct {
 	permissions []model.Permission
@@ -129,7 +121,7 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 			return err
 		}
 
-		enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+		enforcer := deps.CasbinEnforcer()
 		if err := enforcer.LoadPolicy(); err != nil {
 			return err
 		}
@@ -143,6 +135,25 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 }
 
 func main() {
+	fxApp := fx.New(
+		fx.Supply(booter.NewDefaultConfig()),
+		fx.Provide(
+			appregistrar.NewConfigLoader,
+			appregistrar.NewDatabaseConfig,
+			appregistrar.NewDatabase,
+			appregistrar.NewLoggerConfigs,
+			appregistrar.NewLoggers,
+			appregistrar.NewCasbinEnforcer,
+		),
+		fx.Invoke(
+			appregistrar.RegisterConfigDependencies,
+			appregistrar.RegisterServiceDependencies,
+		),
+	)
+	if err := fxApp.Err(); err != nil {
+		panic(err)
+	}
+
 	permissions := []model.Permission{
 		{Name: "http-api-read"},
 		{Name: "permission-create"},
