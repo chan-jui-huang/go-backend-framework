@@ -8,16 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
-	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/v2/pkg/clickhouse"
-	"github.com/chan-jui-huang/go-backend-package/v2/pkg/database"
-	"github.com/chan-jui-huang/go-backend-package/v2/pkg/logger"
-	"github.com/chan-jui-huang/go-backend-package/v2/pkg/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/mold/v4/modifiers"
@@ -25,22 +17,6 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 )
-
-type registryConfigParams struct {
-	fx.In
-
-	BooterConfig         *booter.Config
-	HttpServerConfig     *http.ServerConfig          `optional:"true"`
-	CsrfConfig           *middleware.CsrfConfig      `optional:"true"`
-	RateLimitConfig      *middleware.RateLimitConfig `optional:"true"`
-	AuthenticationConfig *authentication.Config      `optional:"true"`
-	DatabaseConfig       *database.Config            `optional:"true"`
-	RedisConfig          *redis.Config               `optional:"true"`
-	ClickhouseConfig     *clickhouse.Config          `optional:"true"`
-	ConsoleLoggerConfig  *logger.Config              `name:"logger.console" optional:"true"`
-	FileLoggerConfig     *logger.Config              `name:"logger.file" optional:"true"`
-	AccessLoggerConfig   *logger.Config              `name:"logger.access" optional:"true"`
-}
 
 var (
 	testApp *fxtest.App
@@ -86,7 +62,7 @@ func Setup(tb testing.TB) {
 			modifiers.New,
 		),
 		fx.Invoke(
-			registerTestConfigDependencies,
+			registrar.RegisterConfigDependencies,
 			registrar.RegisterServiceDependencies,
 			registrar.RegisterValidator,
 		),
@@ -141,25 +117,6 @@ func loadEnv(wd string, envFile string) {
 	}
 
 	gin.SetMode(gin.ReleaseMode)
-}
-
-func registerTestConfigDependencies(params registryConfigParams) {
-	current := deps.CurrentConfig()
-	current.BooterConfig = params.BooterConfig
-	if params.CsrfConfig != nil {
-		current.CsrfConfigValue = *params.CsrfConfig
-	}
-	if params.RateLimitConfig != nil {
-		current.RateLimitConfigValue = *params.RateLimitConfig
-	}
-	current.AuthenticationConfig = params.AuthenticationConfig
-	current.DatabaseConfig = params.DatabaseConfig
-	current.RedisConfig = params.RedisConfig
-	current.ClickhouseConfig = params.ClickhouseConfig
-	current.ConsoleLoggerConfig = params.ConsoleLoggerConfig
-	current.FileLoggerConfig = params.FileLoggerConfig
-	current.AccessLoggerConfig = params.AccessLoggerConfig
-	deps.SetConfig(current)
 }
 
 func emptyMockedServices() {

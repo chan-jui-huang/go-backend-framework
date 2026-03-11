@@ -3,10 +3,10 @@ package registrar
 import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/casbin/casbin/v3"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/config"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
-	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/clickhouse"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/database"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/logger"
@@ -23,15 +23,15 @@ type RegisterConfigDependenciesParams struct {
 	fx.In
 
 	BooterConfig         *booter.Config
-	CsrfConfig           *middleware.CsrfConfig      `optional:"true"`
-	RateLimitConfig      *middleware.RateLimitConfig `optional:"true"`
-	AuthenticationConfig *authentication.Config      `optional:"true"`
-	DatabaseConfig       *database.Config            `optional:"true"`
-	RedisConfig          *redis.Config               `optional:"true"`
-	ClickhouseConfig     *clickhouse.Config          `optional:"true"`
-	ConsoleLoggerConfig  *logger.Config              `name:"logger.console" optional:"true"`
-	FileLoggerConfig     *logger.Config              `name:"logger.file" optional:"true"`
-	AccessLoggerConfig   *logger.Config              `name:"logger.access" optional:"true"`
+	CsrfConfig           *config.CsrfConfig      `optional:"true"`
+	RateLimitConfig      *config.RateLimitConfig `optional:"true"`
+	AuthenticationConfig *authentication.Config  `optional:"true"`
+	DatabaseConfig       *database.Config        `optional:"true"`
+	RedisConfig          *redis.Config           `optional:"true"`
+	ClickhouseConfig     *clickhouse.Config      `optional:"true"`
+	ConsoleLoggerConfig  *logger.Config          `name:"logger.console" optional:"true"`
+	FileLoggerConfig     *logger.Config          `name:"logger.file" optional:"true"`
+	AccessLoggerConfig   *logger.Config          `name:"logger.access" optional:"true"`
 }
 
 func RegisterConfigDependencies(params RegisterConfigDependenciesParams) {

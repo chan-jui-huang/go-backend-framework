@@ -3,8 +3,9 @@ package deps
 import (
 	"sync"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/config"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
-	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/clickhouse"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/database"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/logger"
@@ -13,8 +14,8 @@ import (
 
 type ConfigState struct {
 	BooterConfig         *booter.Config
-	CsrfConfigValue      any
-	RateLimitConfigValue any
+	CsrfConfigValue      *config.CsrfConfig
+	RateLimitConfigValue *config.RateLimitConfig
 	AuthenticationConfig *authentication.Config
 	DatabaseConfig       *database.Config
 	RedisConfig          *redis.Config
@@ -45,11 +46,11 @@ func BooterConfig() booter.Config {
 	return *CurrentConfig().BooterConfig
 }
 
-func CsrfConfig() any {
+func CsrfConfig() *config.CsrfConfig {
 	return CurrentConfig().CsrfConfigValue
 }
 
-func RateLimitConfig() any {
+func RateLimitConfig() *config.RateLimitConfig {
 	return CurrentConfig().RateLimitConfigValue
 }
 

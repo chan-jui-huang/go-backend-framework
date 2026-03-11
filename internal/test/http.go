@@ -45,7 +45,7 @@ func NewHttpHandler() *httpHandler {
 }
 
 func (handler *httpHandler) AttachGlobalMiddleware() {
-	csrfConfig := deps.CsrfConfig().(middleware.CsrfConfig)
+	csrfConfig := deps.CsrfConfig()
 
 	handlerFunctions := []gin.HandlerFunc{
 		middleware.VerifyCsrfToken(csrfConfig),
@@ -61,7 +61,7 @@ func (handler *httpHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 }
 
 func AddCsrfToken(req *http.Request) {
-	config := deps.CsrfConfig().(middleware.CsrfConfig)
+	config := deps.CsrfConfig()
 	cookie := &http.Cookie{
 		Name:     config.Cookie.Name,
 		Value:    "1234567890",
