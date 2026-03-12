@@ -35,7 +35,7 @@ func (suite *UserRegisterTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -115,7 +115,7 @@ func (suite *UserRegisterTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader([]byte(c.reqBody)))
-		test.AddCsrfToken(req)
+		suite.runtime.HTTP.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 

@@ -115,8 +115,8 @@ func (suite *UserRoleUpdateTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -156,8 +156,8 @@ func (suite *UserRoleUpdateTestSuite) TestDeleteAllRoles() {
 	}
 
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -196,8 +196,8 @@ func (suite *UserRoleUpdateTestSuite) TestPermissionIsRepeat() {
 	}
 
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -218,8 +218,8 @@ func (suite *UserRoleUpdateTestSuite) TestRequestValidationFailed() {
 
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -241,7 +241,7 @@ func (suite *UserRoleUpdateTestSuite) TestWrongAccessToken() {
 	suite.runtime.Permissions.AddPermissions()
 	suite.runtime.Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -275,8 +275,8 @@ func (suite *UserRoleUpdateTestSuite) TestCsrfMismatch() {
 func (suite *UserRoleUpdateTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

@@ -1,4 +1,4 @@
-package test
+package db
 
 import (
 	"database/sql"
@@ -10,19 +10,19 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-type clickhouseMigration struct {
+type ClickhouseMigration struct {
 	dir string
 }
 
-func NewClickhouseMigration() *clickhouseMigration {
+func NewClickhouseMigration() *ClickhouseMigration {
 	booterConfig := deps.BooterConfig()
 
-	return &clickhouseMigration{
+	return &ClickhouseMigration{
 		dir: path.Join(booterConfig.RootDir, "internal/migration/clickhouse/test"),
 	}
 }
 
-func (cm *clickhouseMigration) Run(callbacks ...func()) {
+func (cm *ClickhouseMigration) Run(callbacks ...func()) {
 	clickhouseConfig := deps.ClickhouseConfig()
 	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password))
 	if err != nil {
@@ -59,7 +59,7 @@ func (cm *clickhouseMigration) Run(callbacks ...func()) {
 	}
 }
 
-func (cm *clickhouseMigration) Reset() {
+func (cm *ClickhouseMigration) Reset() {
 	if cm == nil {
 		return
 	}

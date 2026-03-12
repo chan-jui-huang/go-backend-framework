@@ -77,7 +77,7 @@ func (suite *RoleSearchTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("GET", "/api/admin/role?"+queryString.Encode(), nil)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -138,7 +138,7 @@ func (suite *RoleSearchTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("GET", "/api/admin/role"+c.query, nil)
-		test.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -174,7 +174,7 @@ func (suite *RoleSearchTestSuite) TestWrongAccessToken() {
 func (suite *RoleSearchTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("GET", "/api/admin/role", nil)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

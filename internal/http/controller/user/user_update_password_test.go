@@ -37,8 +37,8 @@ func (suite *UserUpdatePasswordTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("PUT", "/api/user/password", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -47,7 +47,7 @@ func (suite *UserUpdatePasswordTestSuite) Test() {
 
 func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -124,8 +124,8 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("PUT", "/api/user/password", bytes.NewReader([]byte(c.reqBody)))
-		test.AddBearerToken(req, accessToken)
-		test.AddCsrfToken(req)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 

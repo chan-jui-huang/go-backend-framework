@@ -64,7 +64,7 @@ func (suite *PermissionGetTestSuite) Test() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -109,7 +109,7 @@ func (suite *PermissionGetTestSuite) TestWrongAccessToken() {
 func (suite *PermissionGetTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

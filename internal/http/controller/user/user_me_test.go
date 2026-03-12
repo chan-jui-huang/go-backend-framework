@@ -32,8 +32,8 @@ func (suite *UserMeTestSuite) Test() {
 
 	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -66,7 +66,7 @@ func (suite *UserMeTestSuite) Test() {
 
 func (suite *UserMeTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

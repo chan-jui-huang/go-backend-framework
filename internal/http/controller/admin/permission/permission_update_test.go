@@ -86,8 +86,8 @@ func (suite *PermissionUpdateTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -116,7 +116,7 @@ func (suite *PermissionUpdateTestSuite) TestWrongAccessToken() {
 	suite.runtime.Permissions.AddPermissions()
 	suite.runtime.Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -168,8 +168,8 @@ func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), bytes.NewReader([]byte(c.reqBody)))
-		test.AddCsrfToken(req)
-		test.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddCsrfToken(req)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -205,8 +205,8 @@ func (suite *PermissionUpdateTestSuite) TestCsrfMismatch() {
 func (suite *PermissionUpdateTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

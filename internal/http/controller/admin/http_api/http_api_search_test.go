@@ -57,7 +57,7 @@ func (suite *HttpApiSearchTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("GET", "/api/admin/http-api?"+queryString.Encode(), nil)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -114,7 +114,7 @@ func (suite *HttpApiSearchTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("GET", "/api/admin/http-api"+c.query, nil)
-		test.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -148,7 +148,7 @@ func (suite *HttpApiSearchTestSuite) TestWrongAccessToken() {
 func (suite *HttpApiSearchTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("GET", "/api/admin/http-api", nil)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

@@ -70,8 +70,8 @@ func (suite *RoleCreateTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("POST", "/api/admin/role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -125,8 +125,8 @@ func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("POST", "/api/admin/role", bytes.NewReader([]byte(c.reqBody)))
-		test.AddCsrfToken(req)
-		test.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddCsrfToken(req)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -146,7 +146,7 @@ func (suite *RoleCreateTestSuite) TestWrongAccessToken() {
 	suite.runtime.Permissions.AddPermissions()
 	suite.runtime.Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -180,8 +180,8 @@ func (suite *RoleCreateTestSuite) TestCsrfMismatch() {
 func (suite *RoleCreateTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

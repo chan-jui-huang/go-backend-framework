@@ -92,8 +92,8 @@ func (suite *RoleDeleteTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("DELETE", "/api/admin/role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -107,8 +107,8 @@ func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
 
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("DELETE", "/api/admin/role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -129,7 +129,7 @@ func (suite *RoleDeleteTestSuite) TestWrongAccessToken() {
 	suite.runtime.Permissions.AddPermissions()
 	suite.runtime.Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -163,8 +163,8 @@ func (suite *RoleDeleteTestSuite) TestCsrfMismatch() {
 func (suite *RoleDeleteTestSuite) TestAuthorizationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 

@@ -1,4 +1,4 @@
-package test
+package operator
 
 import (
 	"bytes"
@@ -11,21 +11,22 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgUser "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
+	httpfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/http"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"github.com/mitchellh/mapstructure"
 )
 
-type UserOperator struct {
-	http *httpHandler
+type UserFixture struct {
+	http *httpfixture.Handler
 }
 
-func NewUserOperator(httpHandler *httpHandler) *UserOperator {
-	return &UserOperator{
+func NewUserFixture(httpHandler *httpfixture.Handler) *UserFixture {
+	return &UserFixture{
 		http: httpHandler,
 	}
 }
 
-func (uo *UserOperator) Register(input fake.UserInput) *model.User {
+func (uo *UserFixture) Register(input fake.UserInput) *model.User {
 	userModel := &model.User{
 		Name:  input.Name,
 		Email: input.Email,
@@ -40,7 +41,7 @@ func (uo *UserOperator) Register(input fake.UserInput) *model.User {
 	return userModel
 }
 
-func (uo *UserOperator) Login(email string, password string) string {
+func (uo *UserFixture) Login(email string, password string) string {
 	userLoginRequest := user.UserLoginRequest{
 		Email:    email,
 		Password: password,
@@ -51,7 +52,7 @@ func (uo *UserOperator) Login(email string, password string) string {
 	}
 
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBody))
-	AddCsrfToken(req)
+	uo.http.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	uo.http.ServeHTTP(resp, req)
 

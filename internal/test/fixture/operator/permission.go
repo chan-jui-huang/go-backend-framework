@@ -1,4 +1,4 @@
-package test
+package operator
 
 import (
 	"fmt"
@@ -13,14 +13,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type PermissionOperator struct {
+type PermissionFixture struct{}
+
+func NewPermissionFixture() *PermissionFixture {
+	return &PermissionFixture{}
 }
 
-func NewPermissionOperator() *PermissionOperator {
-	return &PermissionOperator{}
-}
-
-func (ps *PermissionOperator) AddPermissions() {
+func (ps *PermissionFixture) AddPermissions() {
 	preset := fake.AdminPermissionPreset()
 	role := &model.Role{Name: preset.RoleName}
 
@@ -58,7 +57,7 @@ func (ps *PermissionOperator) AddPermissions() {
 	}
 }
 
-func (ps *PermissionOperator) GrantRoleToUser(userId uint, roleName string) {
+func (ps *PermissionFixture) GrantRoleToUser(userId uint, roleName string) {
 	role, err := permission.GetRole(database.NewTx("Permissions"), "name = ?", roleName)
 	if err != nil {
 		panic(err)
@@ -96,7 +95,7 @@ func (ps *PermissionOperator) GrantRoleToUser(userId uint, roleName string) {
 	}
 }
 
-func (ps *PermissionOperator) GrantAdminToAdminUser() {
+func (ps *PermissionFixture) GrantAdminToAdminUser() {
 	adminUser := fake.Admin()
 	preset := fake.AdminPermissionPreset()
 	u, err := user.Get(database.NewTx(), "email = ?", adminUser.Email)

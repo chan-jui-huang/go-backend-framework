@@ -263,10 +263,14 @@ go-backend-framework/
 │   │       └── example_job.go
 │   │
 │   └── test/                         # Test utilities & fixtures
-│       ├── test.go                   # Test setup helpers
-│       ├── migration.go              # Migration test utils
-│       ├── http.go                   # HTTP test helpers
-│       └── user.go                   # User test fixtures
+│       ├── test.go                   # Public test facade
+│       ├── runtime/
+│       │   └── runtime.go            # Runtime bootstrap & lifecycle
+│       ├── fixture/
+│       │   ├── http/                 # HTTP request helpers and handler fixture
+│       │   ├── db/                   # RDBMS / ClickHouse migration fixtures
+│       │   └── operator/             # User and permission test fixtures
+│       └── fake/                     # Fixture data presets
 │
 ├── pkg/                              # Public, reusable packages
 │   └── ...                           # (Future: extracted as standalone modules)
@@ -430,14 +434,14 @@ loadEnv() → bootConfig() → BeforeExecute() → Execute() → AfterExecute()
 
 5. **Write co-located tests** in `internal/http/controller/<domain>/<action>_test.go`:
    ```go
-   func TestCreate(t *testing.T) {
-       migration.Migrate(t)
+   type UserCreateTestSuite struct {
+       suite.Suite
+       runtime *test.Runtime
+   }
 
-       resp := test.Request(t, "POST", "/api/user", map[string]string{
-           "email": "test@example.com",
-       })
-
-       assert.Equal(t, http.StatusCreated, resp.Code)
+   func (suite *UserCreateTestSuite) SetupTest() {
+       suite.runtime = test.NewRdbmsRuntime(suite.T())
+   }
    }
    ```
 
@@ -547,39 +551,46 @@ package user_test
 import (
     "bytes"
     "encoding/json"
+    "net/http"
     "net/http/httptest"
     "testing"
 
     "github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
     "github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+    "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
     "github.com/stretchr/testify/suite"
 )
 
 type UserLoginTestSuite struct {
     suite.Suite
+    runtime *test.Runtime
 }
 
 // SetupSuite runs once before all tests
 func (suite *UserLoginTestSuite) SetupSuite() {
-    test.RdbmsMigration.Run()  // Migrate test database (SQLite in-memory)
-    test.UserService.Register() // Register test services
+    suite.runtime = test.NewRdbmsRuntime(suite.T())
+    suite.runtime.Users.Register(fake.User())
 }
 
 // Test the login endpoint
 func (suite *UserLoginTestSuite) Test() {
     reqBody := user.UserLoginRequest{
-        Email:    test.UserService.User.Email,
-        Password: test.UserService.UserPassword,
+        Email:    fake.User().Email,
+        Password: fake.User().Password,
     }
 
     reqBodyBytes, _ := json.Marshal(reqBody)
     req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
-    test.AddCsrfToken(req)
+    suite.runtime.HTTP.AddCsrfToken(req)
     resp := httptest.NewRecorder()
 
-    test.HttpHandler.ServeHTTP(resp, req)
+    suite.runtime.HTTP.ServeHTTP(resp, req)
 
     suite.Equal(http.StatusOK, resp.Code)
+}
+
+func (suite *UserLoginTestSuite) TearDownSuite() {
+    suite.runtime.Close()
 }
 
 // Run all tests in the suite
@@ -593,7 +604,7 @@ func TestUserLoginTestSuite(t *testing.T) {
 - **Test both success and failure paths**
 - **Use table-driven tests** for parametric testing with multiple similar scenarios
 - **Keep tests independent** (no shared state)
-- **Use fixtures** from `internal/test/` to avoid duplication
+- **Use runtime and fixtures** from `internal/test/` to avoid duplication
 - **Mock external services** (APIs, payment providers) — use [uber-go/mock](https://github.com/uber-go/mock)
 - **Run `make linter`** before committing to catch style issues
 

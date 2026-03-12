@@ -36,7 +36,7 @@ func (suite *UserLoginTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -65,7 +65,7 @@ func (suite *UserLoginTestSuite) TestEmailIsWrong() {
 	}
 
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -90,7 +90,7 @@ func (suite *UserLoginTestSuite) TestPasswordIsWrong() {
 	}
 
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -141,7 +141,7 @@ func (suite *UserLoginTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader([]byte(c.reqBody)))
-		test.AddCsrfToken(req)
+		suite.runtime.HTTP.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
 		suite.runtime.HTTP.ServeHTTP(resp, req)
 

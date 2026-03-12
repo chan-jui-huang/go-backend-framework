@@ -1,4 +1,4 @@
-package test
+package db
 
 import (
 	"path"
@@ -7,19 +7,19 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-type rdbmsMigration struct {
+type RdbmsMigration struct {
 	dir string
 }
 
-func NewRdbmsMigration() *rdbmsMigration {
+func NewRdbmsMigration() *RdbmsMigration {
 	booterConfig := deps.BooterConfig()
 
-	return &rdbmsMigration{
+	return &RdbmsMigration{
 		dir: path.Join(booterConfig.RootDir, "internal/migration/rdbms/test"),
 	}
 }
 
-func (rm *rdbmsMigration) Run(callbacks ...func()) {
+func (rm *RdbmsMigration) Run(callbacks ...func()) {
 	databaseConfig := deps.DatabaseConfig()
 	database := deps.Database()
 	db, err := database.DB()
@@ -39,7 +39,7 @@ func (rm *rdbmsMigration) Run(callbacks ...func()) {
 	}
 }
 
-func (rm *rdbmsMigration) Reset() {
+func (rm *RdbmsMigration) Reset() {
 	if rm == nil {
 		return
 	}

@@ -37,8 +37,8 @@ func (suite *UserUpdateTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("PUT", "/api/user", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -63,7 +63,7 @@ func (suite *UserUpdateTestSuite) Test() {
 
 func (suite *UserUpdateTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("PUT", "/api/user", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
@@ -96,8 +96,8 @@ func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
 	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("PUT", "/api/user", bytes.NewReader(reqBodyBytes))
-	test.AddBearerToken(req, accessToken)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
