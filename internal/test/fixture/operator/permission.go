@@ -3,9 +3,8 @@ package operator
 import (
 	"fmt"
 
+	"github.com/casbin/casbin/v3"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
@@ -13,17 +12,23 @@ import (
 	"gorm.io/gorm"
 )
 
-type PermissionFixture struct{}
+type PermissionFixture struct {
+	enforcer *casbin.SyncedCachedEnforcer
+	db       *gorm.DB
+}
 
-func NewPermissionFixture() *PermissionFixture {
-	return &PermissionFixture{}
+func NewPermissionFixture(enforcer *casbin.SyncedCachedEnforcer, db *gorm.DB) *PermissionFixture {
+	return &PermissionFixture{
+		enforcer: enforcer,
+		db:       db,
+	}
 }
 
 func (ps *PermissionFixture) AddPermissions() {
 	preset := fake.AdminPermissionPreset()
 	role := &model.Role{Name: preset.RoleName}
 
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := ps.db.Transaction(func(tx *gorm.DB) error {
 		if err := permission.Create(tx, preset.Permissions); err != nil {
 			return err
 		}
@@ -51,14 +56,13 @@ func (ps *PermissionFixture) AddPermissions() {
 		panic(err)
 	}
 
-	enforcer := deps.CasbinEnforcer()
-	if err := enforcer.LoadPolicy(); err != nil {
+	if err := ps.enforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}
 }
 
 func (ps *PermissionFixture) GrantRoleToUser(userId uint, roleName string) {
-	role, err := permission.GetRole(database.NewTx("Permissions"), "name = ?", roleName)
+	role, err := permission.GetRole(ps.tx("Permissions"), "name = ?", roleName)
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +78,7 @@ func (ps *PermissionFixture) GrantRoleToUser(userId uint, roleName string) {
 		casbinRules[i].V1 = role.Permissions[i].Name
 	}
 
-	err = database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err = ps.db.Transaction(func(tx *gorm.DB) error {
 		if err := permission.CreateUserRole(tx, userRole); err != nil {
 			return err
 		}
@@ -89,8 +93,7 @@ func (ps *PermissionFixture) GrantRoleToUser(userId uint, roleName string) {
 		panic(err)
 	}
 
-	enforcer := deps.CasbinEnforcer()
-	if err := enforcer.LoadPolicy(); err != nil {
+	if err := ps.enforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}
 }
@@ -98,10 +101,19 @@ func (ps *PermissionFixture) GrantRoleToUser(userId uint, roleName string) {
 func (ps *PermissionFixture) GrantAdminToAdminUser() {
 	adminUser := fake.Admin()
 	preset := fake.AdminPermissionPreset()
-	u, err := user.Get(database.NewTx(), "email = ?", adminUser.Email)
+	u, err := user.Get(ps.tx(), "email = ?", adminUser.Email)
 	if err != nil {
 		panic(err)
 	}
 
 	ps.GrantRoleToUser(u.Id, preset.RoleName)
+}
+
+func (ps *PermissionFixture) tx(associations ...string) *gorm.DB {
+	tx := ps.db
+	for _, association := range associations {
+		tx = tx.Preload(association)
+	}
+
+	return tx
 }

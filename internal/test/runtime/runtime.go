@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
 	dbfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/db"
 	httpfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/http"
@@ -81,6 +82,8 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 
 	emptyMockedServices()
 	httpHandler := httpfixture.New()
+	enforcer := deps.CasbinEnforcer()
+	db := deps.Database()
 
 	rt := &Runtime{
 		app:         app,
@@ -88,8 +91,8 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 		HTTP:        httpHandler,
 		Rdbms:       dbfixture.NewRdbmsMigration(),
 		Clickhouse:  dbfixture.NewClickhouseMigration(),
-		Users:       operatorfixture.NewUserFixture(httpHandler),
-		Permissions: operatorfixture.NewPermissionFixture(),
+		Users:       operatorfixture.NewUserFixture(httpHandler, db),
+		Permissions: operatorfixture.NewPermissionFixture(enforcer, db),
 	}
 
 	if rt.options.UseRdbms {
