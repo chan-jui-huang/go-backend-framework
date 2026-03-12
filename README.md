@@ -79,7 +79,8 @@ Before running the application, install the following:
 4. **Generate JWT secrets:**
    ```bash
    ./bin/jwt                  # Generate JWT for development
-   ./bin/jwt -env=.env.testing  # Generate JWT for testing
+   ./bin/jwt -env=.env.test   # Generate JWT for test runs
+   ./bin/jwt -env=.env.staging  # Generate JWT for staging
    ```
 
 ### 4. Run Tests
@@ -284,8 +285,9 @@ go-backend-framework/
 │   └── docker/
 │       └── Dockerfile
 │
-├── config.yml                        # Development configuration
-├── config.testing.yml                # Testing configuration
+├── config.yml                        # Default/local configuration
+├── config.test.yml                   # Test configuration
+├── config.staging.yml                # Staging configuration
 ├── config.production.yml             # Production configuration
 ├── .env.example                      # Environment template
 ├── go.mod & go.sum                   # Dependency management

@@ -63,8 +63,8 @@ air:
 
 test:
 	$(eval args?=./...)
-	go test ${args}
+	ENV=test go test ${args}
 
 benchmark:
 	$(eval args?=./...)
-	go test -bench=. -run=none -benchmem ${args}
+	ENV=test go test -bench=. -run=none -benchmem ${args}

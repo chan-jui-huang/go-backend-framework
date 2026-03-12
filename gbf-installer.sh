@@ -12,7 +12,8 @@ curl -L https://github.com/chan-jui-huang/go-backend-framework/archive/refs/tags
 cd $PROJECT_NAME
 rm LICENSE
 cp .env.example .env
-cp .env.testing.example .env.testing
+cp .env.test.example .env.test
+cp .env.staging.example .env.staging
 cp .air.exmaple.toml .air.toml
 
 OLD_MODULE_NAME=github.com/chan-jui-huang/go-backend-framework

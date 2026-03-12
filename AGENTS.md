@@ -151,7 +151,7 @@ func CreateUser(c *gin.Context) {
 - CLI builds: `make jwt`, `make http_route`, `make rdbms_seeder`, `make permission_seeder` build individual helpers into `bin/`.
 - Docs: `make swagger` regenerates Swagger artifacts after updating annotations.
 - Quality: `make linter` (golangci-lint with `errcheck` and `gosec`) and `golangci-lint run ./...` should pass before commits.
-- Tests & benchmarks: `make test [args=./...]`, `make benchmark`, or `go test ./...` (ensure SQLite and `.env.testing` are available).
+- Tests & benchmarks: `make test [args=./...]`, `make benchmark`, or `go test ./...` (ensure SQLite and `.env.test` are available).
 - When using `make test`, do not set the `GOCACHE` environment variable.
 
 ## Coding Style & Naming Conventions
@@ -220,7 +220,7 @@ General guidance:
 - Location: place `*_test.go` files alongside the code they cover; prefer table-driven tests or testify suites.
 - Bootstrapping: leverage `internal/test` utilities for environment loading, seeded users, migrations, and CSRF helpers instead of reimplementing setup logic.
 - Mock services: when introducing a new mock service, also register it in `internal/test/test.go` within `emptyMockedServices` so the test harness initializes it.
-- Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.testing` to provide DSNs and secrets.
+- Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.test` to provide DSNs and secrets.
 - Coverage: exercise both success and failure paths. **REQUIRED**: Test all possible return values from controllers (success, validation failures, auth failures, business errors). Reference existing patterns in `internal/http/controller/**/*_test.go`. Document skipped integration tests in PR descriptions. Add controller/service tests whenever adding new endpoints.
 
 ## Migrations
@@ -231,7 +231,7 @@ General guidance:
 
 ## Security & Configuration
 - Never commit secrets. Place credentials in `storage/...` as described in the README.
-- Provide `.env.dev` and `.env.testing` locally; avoid committing real values.
+- Provide `.env.test` and `.env.staging` locally when needed; avoid committing real values.
 - Validate configuration via `make run` and integration tests before deployment.
 
 ## Commit & PR Guidelines
@@ -241,7 +241,7 @@ General guidance:
 - When drafting commit messages, combine the diff of staged files with any relevant AI agent conversation tied to those changes; if no conversation applies, rely on the staged diff alone.
 
 ## Helper CLIs (under `cmd/kit`)
-- `jwt`: Issue and inspect JWTs for local/dev.
+- `jwt`: Issue and inspect JWTs for environment-specific usage.
 - `http_route`: Generate or lint HTTP route scaffolding.
 - `rdbms_seeder`: Seed relational databases with base data.
 - `permission_seeder`: Seed Casbin roles, permissions, and grouping policies.

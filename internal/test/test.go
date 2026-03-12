@@ -108,9 +108,14 @@ func testConfigFiles() (string, string, string) {
 	}
 
 	wd := path.Join(path.Dir(file), "../..")
-	env := "dev"
+	env := "test"
 	if e := os.Getenv("ENV"); e != "" {
-		env = e
+		switch e {
+		case "test":
+			env = e
+		default:
+			panic(fmt.Sprintf("unsupported ENV for test setup: %s", e))
+		}
 	}
 
 	return wd, fmt.Sprintf(".env.%s", env), fmt.Sprintf("config.%s.yml", env)
