@@ -23,13 +23,14 @@ import (
 
 type PermissionUpdateTestSuite struct {
 	suite.Suite
+	runtime    *test.Runtime
 	permission *model.Permission
 }
 
 func (suite *PermissionUpdateTestSuite) SetupTest() {
-	test.Setup(suite.T())
-	test.GetRuntime().Rdbms.Run()
-	test.GetRuntime().Users.Register(fake.Admin())
+	suite.runtime = test.NewRuntime(suite.T())
+	suite.runtime.Rdbms.Run()
+	suite.runtime.Users.Register(fake.Admin())
 
 	permissionModel := &model.Permission{Name: "permission1"}
 	casbinRules := []gormadapter.CasbinRule{
@@ -60,9 +61,9 @@ func (suite *PermissionUpdateTestSuite) SetupTest() {
 }
 
 func (suite *PermissionUpdateTestSuite) Test() {
-	test.GetRuntime().Permissions.AddPermissions()
-	test.GetRuntime().Permissions.GrantAdminToAdminUser()
-	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
+	suite.runtime.Permissions.AddPermissions()
+	suite.runtime.Permissions.GrantAdminToAdminUser()
+	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	reqBody := permission.PermissionUpdateRequest{
 		Name: "permission2",
@@ -89,7 +90,7 @@ func (suite *PermissionUpdateTestSuite) Test() {
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -113,12 +114,12 @@ func (suite *PermissionUpdateTestSuite) Test() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestWrongAccessToken() {
-	test.GetRuntime().Permissions.AddPermissions()
-	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	suite.runtime.Permissions.AddPermissions()
+	suite.runtime.Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -131,9 +132,9 @@ func (suite *PermissionUpdateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
-	test.GetRuntime().Permissions.AddPermissions()
-	test.GetRuntime().Permissions.GrantAdminToAdminUser()
-	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
+	suite.runtime.Permissions.AddPermissions()
+	suite.runtime.Permissions.GrantAdminToAdminUser()
+	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	cases := []struct {
 		reqBody  string
@@ -171,7 +172,7 @@ func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
 		test.AddCsrfToken(req)
 		test.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
-		test.GetRuntime().HTTP.ServeHTTP(resp, req)
+		suite.runtime.HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -186,11 +187,11 @@ func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestCsrfMismatch() {
-	test.GetRuntime().Permissions.AddPermissions()
-	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	suite.runtime.Permissions.AddPermissions()
+	suite.runtime.Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -203,12 +204,12 @@ func (suite *PermissionUpdateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestAuthorizationFailed() {
-	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -221,8 +222,8 @@ func (suite *PermissionUpdateTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *PermissionUpdateTestSuite) TearDownTest() {
-	test.GetRuntime().Rdbms.Reset()
-	test.Shutdown()
+	suite.runtime.Rdbms.Reset()
+	suite.runtime.Close()
 }
 
 func TestPermissionUpdateTestSuite(t *testing.T) {

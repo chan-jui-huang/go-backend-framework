@@ -16,26 +16,27 @@ import (
 
 type UserMeTestSuite struct {
 	suite.Suite
-	userId uint
+	runtime *test.Runtime
+	userId  uint
 }
 
 func (suite *UserMeTestSuite) SetupSuite() {
-	test.Setup(suite.T())
-	test.GetRuntime().Rdbms.Run()
-	createdUser := test.GetRuntime().Users.Register(fake.User())
+	suite.runtime = test.NewRuntime(suite.T())
+	suite.runtime.Rdbms.Run()
+	createdUser := suite.runtime.Users.Register(fake.User())
 	suite.userId = createdUser.Id
 }
 
 func (suite *UserMeTestSuite) Test() {
-	test.GetRuntime().Permissions.AddPermissions()
-	test.GetRuntime().Permissions.GrantRoleToUser(suite.userId, "admin")
+	suite.runtime.Permissions.AddPermissions()
+	suite.runtime.Permissions.GrantRoleToUser(suite.userId, "admin")
 
-	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -68,7 +69,7 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -81,8 +82,8 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *UserMeTestSuite) TearDownSuite() {
-	test.GetRuntime().Rdbms.Reset()
-	test.Shutdown()
+	suite.runtime.Rdbms.Reset()
+	suite.runtime.Close()
 }
 
 func TestUserMeTestSuite(t *testing.T) {

@@ -12,10 +12,11 @@ import (
 
 type RegistrarTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *RegistrarTestSuite) SetupSuite() {
-	test.Setup(suite.T())
+	suite.runtime = test.NewRuntime(suite.T())
 }
 
 func (suite *RegistrarTestSuite) TestDependenciesRegistered() {
@@ -78,7 +79,7 @@ func (suite *RegistrarTestSuite) TestValidatorTagNameFunc() {
 }
 
 func (suite *RegistrarTestSuite) TearDownSuite() {
-	test.Shutdown()
+	suite.runtime.Close()
 }
 
 func TestRegistrarTestSuite(t *testing.T) {

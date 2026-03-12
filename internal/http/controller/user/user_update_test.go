@@ -17,16 +17,17 @@ import (
 
 type UserUpdateTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *UserUpdateTestSuite) SetupTest() {
-	test.Setup(suite.T())
-	test.GetRuntime().Rdbms.Run()
-	test.GetRuntime().Users.Register(fake.User())
+	suite.runtime = test.NewRuntime(suite.T())
+	suite.runtime.Rdbms.Run()
+	suite.runtime.Users.Register(fake.User())
 }
 
 func (suite *UserUpdateTestSuite) Test() {
-	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	reqBody := user.UserUpdateRequest{
 		Name:  "bob",
 		Email: "bob@test.com",
@@ -40,7 +41,7 @@ func (suite *UserUpdateTestSuite) Test() {
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -65,7 +66,7 @@ func (suite *UserUpdateTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("PUT", "/api/user", nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -80,7 +81,7 @@ func (suite *UserUpdateTestSuite) TestWrongAccessToken() {
 func (suite *UserUpdateTestSuite) TestCsrfMismatch() {
 	req := httptest.NewRequest("PUT", "/api/user", nil)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -93,13 +94,13 @@ func (suite *UserUpdateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
-	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("PUT", "/api/user", bytes.NewReader(reqBodyBytes))
 	test.AddBearerToken(req, accessToken)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -116,8 +117,8 @@ func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserUpdateTestSuite) TearDownTest() {
-	test.GetRuntime().Rdbms.Reset()
-	test.Shutdown()
+	suite.runtime.Rdbms.Reset()
+	suite.runtime.Close()
 }
 
 func TestUserUpdateTestSuite(t *testing.T) {

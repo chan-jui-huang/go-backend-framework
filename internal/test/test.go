@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"sync"
 	"testing"
 	"time"
 
@@ -19,12 +18,8 @@ import (
 	"go.uber.org/fx/fxtest"
 )
 
-var (
-	testApp *fxtest.App
-	setupMu sync.Mutex
-)
-
 type Runtime struct {
+	app         *fxtest.App
 	HTTP        *httpHandler
 	Rdbms       *rdbmsMigration
 	Clickhouse  *clickhouseMigration
@@ -32,32 +27,15 @@ type Runtime struct {
 	Permissions *PermissionOperator
 }
 
-var runtimeValue *Runtime
-
-func GetRuntime() *Runtime {
-	if runtimeValue == nil {
-		panic("test runtime is not initialized")
-	}
-
-	return runtimeValue
-}
-
-func Setup(tb testing.TB) {
+func NewRuntime(tb testing.TB) *Runtime {
 	tb.Helper()
-
-	setupMu.Lock()
-	defer setupMu.Unlock()
-
-	if testApp != nil {
-		return
-	}
 
 	wd, envFile, configFile := testConfigFiles()
 	loadEnv(wd, envFile)
 
 	booterConfig := booter.NewConfig(wd, configFile, false)
 
-	testApp = fxtest.New(
+	app := fxtest.New(
 		tb,
 		fx.StopTimeout(60*time.Second),
 		fx.Supply(booterConfig),
@@ -90,28 +68,30 @@ func Setup(tb testing.TB) {
 			registrar.RegisterServiceDependencies,
 		),
 	)
-	testApp.RequireStart()
+	app.RequireStart()
 
 	emptyMockedServices()
-	runtimeValue = &Runtime{
-		HTTP:        NewHttpHandler(),
+	httpHandler := NewHttpHandler()
+
+	return &Runtime{
+		app:         app,
+		HTTP:        httpHandler,
 		Rdbms:       NewRdbmsMigration(),
 		Clickhouse:  NewClickhouseMigration(),
-		Users:       NewUserOperator(),
+		Users:       NewUserOperator(httpHandler),
 		Permissions: NewPermissionOperator(),
 	}
 }
 
-func Shutdown() {
-	setupMu.Lock()
-	defer setupMu.Unlock()
-
-	if testApp != nil {
-		testApp.RequireStop()
-		testApp = nil
+func (rt *Runtime) Close() {
+	if rt == nil {
+		return
 	}
 
-	runtimeValue = nil
+	if rt.app != nil {
+		rt.app.RequireStop()
+		rt.app = nil
+	}
 }
 
 func testConfigFiles() (string, string, string) {

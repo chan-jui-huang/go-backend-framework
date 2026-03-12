@@ -17,12 +17,13 @@ import (
 
 type UserLoginTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *UserLoginTestSuite) SetupSuite() {
-	test.Setup(suite.T())
-	test.GetRuntime().Rdbms.Run()
-	test.GetRuntime().Users.Register(fake.User())
+	suite.runtime = test.NewRuntime(suite.T())
+	suite.runtime.Rdbms.Run()
+	suite.runtime.Users.Register(fake.User())
 }
 
 func (suite *UserLoginTestSuite) Test() {
@@ -38,7 +39,7 @@ func (suite *UserLoginTestSuite) Test() {
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -67,7 +68,7 @@ func (suite *UserLoginTestSuite) TestEmailIsWrong() {
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -92,7 +93,7 @@ func (suite *UserLoginTestSuite) TestPasswordIsWrong() {
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBodyBytes))
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -107,7 +108,7 @@ func (suite *UserLoginTestSuite) TestPasswordIsWrong() {
 func (suite *UserLoginTestSuite) TestCsrfMismatch() {
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader([]byte{}))
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -143,7 +144,7 @@ func (suite *UserLoginTestSuite) TestRequestValidationFailed() {
 		req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader([]byte(c.reqBody)))
 		test.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
-		test.GetRuntime().HTTP.ServeHTTP(resp, req)
+		suite.runtime.HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -158,8 +159,8 @@ func (suite *UserLoginTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserLoginTestSuite) TearDownSuite() {
-	test.GetRuntime().Rdbms.Reset()
-	test.Shutdown()
+	suite.runtime.Rdbms.Reset()
+	suite.runtime.Close()
 }
 
 func TestUserLoginTestSuite(t *testing.T) {

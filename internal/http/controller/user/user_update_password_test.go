@@ -16,16 +16,17 @@ import (
 
 type UserUpdatePasswordTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *UserUpdatePasswordTestSuite) SetupTest() {
-	test.Setup(suite.T())
-	test.GetRuntime().Rdbms.Run()
-	test.GetRuntime().Users.Register(fake.User())
+	suite.runtime = test.NewRuntime(suite.T())
+	suite.runtime.Rdbms.Run()
+	suite.runtime.Users.Register(fake.User())
 }
 
 func (suite *UserUpdatePasswordTestSuite) Test() {
-	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	reqBody := user.UserUpdatePasswordRequest{
 		CurrentPassword: "abcABC123",
 		Password:        "abcABC000",
@@ -40,7 +41,7 @@ func (suite *UserUpdatePasswordTestSuite) Test() {
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	suite.Equal(http.StatusNoContent, resp.Code)
 }
@@ -49,7 +50,7 @@ func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -64,7 +65,7 @@ func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
 	resp := httptest.NewRecorder()
-	test.GetRuntime().HTTP.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -77,7 +78,7 @@ func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
-	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
 	cases := []struct {
 		reqBody  string
 		expected map[string]any
@@ -127,7 +128,7 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 		test.AddBearerToken(req, accessToken)
 		test.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
-		test.GetRuntime().HTTP.ServeHTTP(resp, req)
+		suite.runtime.HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -142,8 +143,8 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TearDownTest() {
-	test.GetRuntime().Rdbms.Reset()
-	test.Shutdown()
+	suite.runtime.Rdbms.Reset()
+	suite.runtime.Close()
 }
 
 func TestUserUpdatePasswordTestSuite(t *testing.T) {

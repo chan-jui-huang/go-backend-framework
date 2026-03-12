@@ -15,10 +15,14 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type UserOperator struct{}
+type UserOperator struct {
+	http *httpHandler
+}
 
-func NewUserOperator() *UserOperator {
-	return &UserOperator{}
+func NewUserOperator(httpHandler *httpHandler) *UserOperator {
+	return &UserOperator{
+		http: httpHandler,
+	}
 }
 
 func (uo *UserOperator) Register(input fake.UserInput) *model.User {
@@ -49,7 +53,7 @@ func (uo *UserOperator) Login(email string, password string) string {
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBody))
 	AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	GetRuntime().HTTP.ServeHTTP(resp, req)
+	uo.http.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
