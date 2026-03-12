@@ -20,8 +20,7 @@ type UserUpdatePasswordTestSuite struct {
 }
 
 func (suite *UserUpdatePasswordTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.User())
 }
 
@@ -143,7 +142,6 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

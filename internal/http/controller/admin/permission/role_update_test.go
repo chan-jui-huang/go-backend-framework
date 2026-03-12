@@ -29,8 +29,7 @@ type RoleUpdateTestSuite struct {
 }
 
 func (suite *RoleUpdateTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.Admin())
 
 	role := &model.Role{Name: "role1"}
@@ -227,7 +226,6 @@ func (suite *RoleUpdateTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleUpdateTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

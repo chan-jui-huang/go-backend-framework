@@ -16,7 +16,7 @@ type RegistrarTestSuite struct {
 }
 
 func (suite *RegistrarTestSuite) SetupSuite() {
-	suite.runtime = test.NewRuntime(suite.T())
+	suite.runtime = test.NewBaseRuntime(suite.T())
 }
 
 func (suite *RegistrarTestSuite) TestDependenciesRegistered() {

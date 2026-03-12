@@ -25,8 +25,7 @@ type RoleDeleteTestSuite struct {
 }
 
 func (suite *RoleDeleteTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.Admin())
 }
 
@@ -180,7 +179,6 @@ func (suite *RoleDeleteTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleDeleteTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

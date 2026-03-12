@@ -21,8 +21,7 @@ type UserMeTestSuite struct {
 }
 
 func (suite *UserMeTestSuite) SetupSuite() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	createdUser := suite.runtime.Users.Register(fake.User())
 	suite.userId = createdUser.Id
 }
@@ -82,7 +81,6 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *UserMeTestSuite) TearDownSuite() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

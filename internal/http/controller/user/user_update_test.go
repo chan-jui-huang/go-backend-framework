@@ -21,8 +21,7 @@ type UserUpdateTestSuite struct {
 }
 
 func (suite *UserUpdateTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.User())
 }
 
@@ -117,7 +116,6 @@ func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserUpdateTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

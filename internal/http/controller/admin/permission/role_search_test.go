@@ -27,8 +27,7 @@ type RoleSearchTestSuite struct {
 }
 
 func (suite *RoleSearchTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.Admin())
 }
 
@@ -190,7 +189,6 @@ func (suite *RoleSearchTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleSearchTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

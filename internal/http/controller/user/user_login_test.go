@@ -21,8 +21,7 @@ type UserLoginTestSuite struct {
 }
 
 func (suite *UserLoginTestSuite) SetupSuite() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.User())
 }
 
@@ -159,7 +158,6 @@ func (suite *UserLoginTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserLoginTestSuite) TearDownSuite() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

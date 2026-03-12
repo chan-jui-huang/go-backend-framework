@@ -26,8 +26,7 @@ type PermissionDeleteTestSuite struct {
 }
 
 func (suite *PermissionDeleteTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.Admin())
 
 	permissionModel := &model.Permission{Name: "permission1"}
@@ -176,7 +175,6 @@ func (suite *PermissionDeleteTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *PermissionDeleteTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

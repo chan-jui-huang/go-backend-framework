@@ -26,8 +26,7 @@ type HttpApiSearchTestSuite struct {
 }
 
 func (suite *HttpApiSearchTestSuite) SetupTest() {
-	suite.runtime = test.NewRuntime(suite.T())
-	suite.runtime.Rdbms.Run()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
 	suite.runtime.Users.Register(fake.Admin())
 }
 
@@ -164,7 +163,6 @@ func (suite *HttpApiSearchTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *HttpApiSearchTestSuite) TearDownTest() {
-	suite.runtime.Rdbms.Reset()
 	suite.runtime.Close()
 }
 

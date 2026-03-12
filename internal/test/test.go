@@ -20,6 +20,7 @@ import (
 
 type Runtime struct {
 	app         *fxtest.App
+	options     RuntimeOptions
 	HTTP        *httpHandler
 	Rdbms       *rdbmsMigration
 	Clickhouse  *clickhouseMigration
@@ -27,7 +28,12 @@ type Runtime struct {
 	Permissions *PermissionOperator
 }
 
-func NewRuntime(tb testing.TB) *Runtime {
+type RuntimeOptions struct {
+	UseRdbms      bool
+	UseClickhouse bool
+}
+
+func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	tb.Helper()
 
 	wd, envFile, configFile := testConfigFiles()
@@ -73,19 +79,65 @@ func NewRuntime(tb testing.TB) *Runtime {
 	emptyMockedServices()
 	httpHandler := NewHttpHandler()
 
-	return &Runtime{
+	rt := &Runtime{
 		app:         app,
+		options:     options,
 		HTTP:        httpHandler,
 		Rdbms:       NewRdbmsMigration(),
 		Clickhouse:  NewClickhouseMigration(),
 		Users:       NewUserOperator(httpHandler),
 		Permissions: NewPermissionOperator(),
 	}
+
+	if rt.options.UseRdbms {
+		rt.Rdbms.Run()
+	}
+
+	if rt.options.UseClickhouse {
+		rt.Clickhouse.Run()
+	}
+
+	return rt
+}
+
+func NewBaseRuntime(tb testing.TB) *Runtime {
+	tb.Helper()
+
+	return NewRuntime(tb, RuntimeOptions{})
+}
+
+func NewRdbmsRuntime(tb testing.TB) *Runtime {
+	tb.Helper()
+
+	return NewRuntime(tb, RuntimeOptions{UseRdbms: true})
+}
+
+func NewClickhouseRuntime(tb testing.TB) *Runtime {
+	tb.Helper()
+
+	return NewRuntime(tb, RuntimeOptions{UseClickhouse: true})
+}
+
+func NewFullRuntime(tb testing.TB) *Runtime {
+	tb.Helper()
+
+	return NewRuntime(tb, RuntimeOptions{
+		UseRdbms:      true,
+		UseClickhouse: true,
+	})
 }
 
 func (rt *Runtime) Close() {
 	if rt == nil {
 		return
+	}
+
+	if rt.options.UseClickhouse && rt.Clickhouse != nil {
+		rt.Clickhouse.Reset()
+	}
+
+	if rt.options.UseRdbms && rt.Rdbms != nil {
+		rt.Rdbms.Reset()
 	}
 
 	if rt.app != nil {
