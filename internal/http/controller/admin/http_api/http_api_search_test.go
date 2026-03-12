@@ -14,6 +14,7 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/pagination"
 	"github.com/gorilla/schema"
 	"github.com/stretchr/testify/suite"
@@ -25,14 +26,14 @@ type HttpApiSearchTestSuite struct {
 
 func (suite *HttpApiSearchTestSuite) SetupTest() {
 	test.Setup(suite.T())
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	test.GetRuntime().Rdbms.Run()
+	test.GetRuntime().Users.Register(fake.Admin())
 }
 
 func (suite *HttpApiSearchTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	httpApi := &model.HttpApi{
 		Method: "GET",
@@ -58,7 +59,7 @@ func (suite *HttpApiSearchTestSuite) Test() {
 	req := httptest.NewRequest("GET", "/api/admin/http-api?"+queryString.Encode(), nil)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -82,9 +83,9 @@ func (suite *HttpApiSearchTestSuite) Test() {
 }
 
 func (suite *HttpApiSearchTestSuite) TestRequestValidationFailed() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	cases := []struct {
 		query    string
@@ -115,7 +116,7 @@ func (suite *HttpApiSearchTestSuite) TestRequestValidationFailed() {
 		req := httptest.NewRequest("GET", "/api/admin/http-api"+c.query, nil)
 		test.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -132,7 +133,7 @@ func (suite *HttpApiSearchTestSuite) TestRequestValidationFailed() {
 func (suite *HttpApiSearchTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("GET", "/api/admin/http-api", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -145,11 +146,11 @@ func (suite *HttpApiSearchTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *HttpApiSearchTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("GET", "/api/admin/http-api", nil)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -162,7 +163,7 @@ func (suite *HttpApiSearchTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *HttpApiSearchTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	test.GetRuntime().Rdbms.Reset()
 	test.Shutdown()
 }
 

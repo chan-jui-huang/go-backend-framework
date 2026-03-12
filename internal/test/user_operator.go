@@ -10,39 +10,36 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgUser "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"github.com/mitchellh/mapstructure"
 )
 
-type userService struct {
-	User         *model.User
-	UserPassword string
+type UserOperator struct{}
+
+func NewUserOperator() *UserOperator {
+	return &UserOperator{}
 }
 
-var UserService *userService
-
-func NewUserService() *userService {
-	return &userService{
-		User: &model.User{
-			Name:  "john",
-			Email: "john@test.com",
-		},
-		UserPassword: "abcABC123",
+func (uo *UserOperator) Register(input fake.UserInput) *model.User {
+	userModel := &model.User{
+		Name:  input.Name,
+		Email: input.Email,
 	}
-}
+	userModel.Password = argon2.MakeArgon2IdHash(input.Password)
 
-func (us *userService) Register() {
-	us.User.Password = argon2.MakeArgon2IdHash(us.UserPassword)
-	err := pkgUser.Create(database.NewTx(), us.User)
+	err := pkgUser.Create(database.NewTx(), userModel)
 	if err != nil {
 		panic(err)
 	}
+
+	return userModel
 }
 
-func (us *userService) Login() string {
+func (uo *UserOperator) Login(email string, password string) string {
 	userLoginRequest := user.UserLoginRequest{
-		Email:    us.User.Email,
-		Password: us.UserPassword,
+		Email:    email,
+		Password: password,
 	}
 	reqBody, err := json.Marshal(userLoginRequest)
 	if err != nil {
@@ -52,7 +49,7 @@ func (us *userService) Login() string {
 	req := httptest.NewRequest("POST", "/api/user/login", bytes.NewReader(reqBody))
 	AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	HttpHandler.ServeHTTP(resp, req)
+	GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {

@@ -24,6 +24,24 @@ var (
 	setupMu sync.Mutex
 )
 
+type Runtime struct {
+	HTTP        *httpHandler
+	Rdbms       *rdbmsMigration
+	Clickhouse  *clickhouseMigration
+	Users       *UserOperator
+	Permissions *PermissionOperator
+}
+
+var runtimeValue *Runtime
+
+func GetRuntime() *Runtime {
+	if runtimeValue == nil {
+		panic("test runtime is not initialized")
+	}
+
+	return runtimeValue
+}
+
 func Setup(tb testing.TB) {
 	tb.Helper()
 
@@ -75,13 +93,13 @@ func Setup(tb testing.TB) {
 	testApp.RequireStart()
 
 	emptyMockedServices()
-
-	HttpHandler = NewHttpHandler()
-	RdbmsMigration = NewRdbmsMigration()
-	ClickhouseMigration = NewClickhouseMigration()
-	PermissionService = NewPermissionService()
-	UserService = NewUserService()
-	AdminService = NewAdminService()
+	runtimeValue = &Runtime{
+		HTTP:        NewHttpHandler(),
+		Rdbms:       NewRdbmsMigration(),
+		Clickhouse:  NewClickhouseMigration(),
+		Users:       NewUserOperator(),
+		Permissions: NewPermissionOperator(),
+	}
 }
 
 func Shutdown() {
@@ -93,12 +111,7 @@ func Shutdown() {
 		testApp = nil
 	}
 
-	HttpHandler = nil
-	RdbmsMigration = nil
-	ClickhouseMigration = nil
-	PermissionService = nil
-	UserService = nil
-	AdminService = nil
+	runtimeValue = nil
 }
 
 func testConfigFiles() (string, string, string) {

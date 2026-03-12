@@ -10,29 +10,32 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 )
 
 type UserMeTestSuite struct {
 	suite.Suite
+	userId uint
 }
 
 func (suite *UserMeTestSuite) SetupSuite() {
 	test.Setup(suite.T())
-	test.RdbmsMigration.Run()
-	test.UserService.Register()
+	test.GetRuntime().Rdbms.Run()
+	createdUser := test.GetRuntime().Users.Register(fake.User())
+	suite.userId = createdUser.Id
 }
 
 func (suite *UserMeTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantRoleToUser(test.UserService.User.Id, "admin")
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantRoleToUser(suite.userId, "admin")
 
-	accessToken := test.UserService.Login()
+	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -65,7 +68,7 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -78,7 +81,7 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *UserMeTestSuite) TearDownSuite() {
-	test.RdbmsMigration.Reset()
+	test.GetRuntime().Rdbms.Reset()
 	test.Shutdown()
 }
 

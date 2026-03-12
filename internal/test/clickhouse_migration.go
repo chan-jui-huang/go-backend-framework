@@ -14,8 +14,6 @@ type clickhouseMigration struct {
 	dir string
 }
 
-var ClickhouseMigration *clickhouseMigration
-
 func NewClickhouseMigration() *clickhouseMigration {
 	booterConfig := deps.BooterConfig()
 

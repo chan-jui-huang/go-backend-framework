@@ -15,6 +15,7 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 )
@@ -25,14 +26,14 @@ type RoleCreateTestSuite struct {
 
 func (suite *RoleCreateTestSuite) SetupTest() {
 	test.Setup(suite.T())
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	test.GetRuntime().Rdbms.Run()
+	test.GetRuntime().Users.Register(fake.Admin())
 }
 
 func (suite *RoleCreateTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	permissionModel := &model.Permission{Name: "permission1"}
 	casbinRules := []gormadapter.CasbinRule{
@@ -72,7 +73,7 @@ func (suite *RoleCreateTestSuite) Test() {
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -99,9 +100,9 @@ func (suite *RoleCreateTestSuite) Test() {
 }
 
 func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	cases := []struct {
 		reqBody  string
@@ -127,7 +128,7 @@ func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
 		test.AddCsrfToken(req)
 		test.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -142,12 +143,12 @@ func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *RoleCreateTestSuite) TestWrongAccessToken() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -160,11 +161,11 @@ func (suite *RoleCreateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *RoleCreateTestSuite) TestCsrfMismatch() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -177,12 +178,12 @@ func (suite *RoleCreateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *RoleCreateTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -195,7 +196,7 @@ func (suite *RoleCreateTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleCreateTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	test.GetRuntime().Rdbms.Reset()
 	test.Shutdown()
 }
 

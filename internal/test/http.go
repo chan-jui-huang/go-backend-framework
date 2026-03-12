@@ -14,8 +14,6 @@ type httpHandler struct {
 	engine *gin.Engine
 }
 
-var HttpHandler *httpHandler
-
 func newHttpHandler(handlerFuncs ...gin.HandlerFunc) *httpHandler {
 	engine, err := pkgHttp.NewEngine()
 	if err != nil {
@@ -40,8 +38,8 @@ func newHttpHandler(handlerFuncs ...gin.HandlerFunc) *httpHandler {
 	return handler
 }
 
-func NewHttpHandler() *httpHandler {
-	return newHttpHandler()
+func NewHttpHandler(handlerFuncs ...gin.HandlerFunc) *httpHandler {
+	return newHttpHandler(handlerFuncs...)
 }
 
 func (handler *httpHandler) AttachGlobalMiddleware() {
@@ -78,15 +76,4 @@ func AddCsrfToken(req *http.Request) {
 
 func AddBearerToken(req *http.Request, token string) {
 	req.Header.Set("Authorization", token)
-}
-
-func EnableMiddleware(handlerFuncs ...gin.HandlerFunc) func() {
-	original := HttpHandler
-	handler := newHttpHandler(handlerFuncs...)
-
-	HttpHandler = handler
-
-	return func() {
-		HttpHandler = original
-	}
 }

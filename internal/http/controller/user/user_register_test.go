@@ -20,7 +20,7 @@ type UserRegisterTestSuite struct {
 
 func (suite *UserRegisterTestSuite) SetupSuite() {
 	test.Setup(suite.T())
-	test.RdbmsMigration.Run()
+	test.GetRuntime().Rdbms.Run()
 }
 
 func (suite *UserRegisterTestSuite) Test() {
@@ -37,7 +37,7 @@ func (suite *UserRegisterTestSuite) Test() {
 	req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader(reqBodyBytes))
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -56,7 +56,7 @@ func (suite *UserRegisterTestSuite) Test() {
 func (suite *UserRegisterTestSuite) TestCsrfMismatch() {
 	req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader([]byte{}))
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -117,7 +117,7 @@ func (suite *UserRegisterTestSuite) TestRequestValidationFailed() {
 		req := httptest.NewRequest("POST", "/api/user/register", bytes.NewReader([]byte(c.reqBody)))
 		test.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -132,7 +132,7 @@ func (suite *UserRegisterTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserRegisterTestSuite) TearDownSuite() {
-	test.RdbmsMigration.Reset()
+	test.GetRuntime().Rdbms.Reset()
 	test.Shutdown()
 }
 

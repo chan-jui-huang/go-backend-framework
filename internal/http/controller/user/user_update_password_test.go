@@ -10,6 +10,7 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -19,12 +20,12 @@ type UserUpdatePasswordTestSuite struct {
 
 func (suite *UserUpdatePasswordTestSuite) SetupTest() {
 	test.Setup(suite.T())
-	test.RdbmsMigration.Run()
-	test.UserService.Register()
+	test.GetRuntime().Rdbms.Run()
+	test.GetRuntime().Users.Register(fake.User())
 }
 
 func (suite *UserUpdatePasswordTestSuite) Test() {
-	accessToken := test.UserService.Login()
+	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
 	reqBody := user.UserUpdatePasswordRequest{
 		CurrentPassword: "abcABC123",
 		Password:        "abcABC000",
@@ -39,7 +40,7 @@ func (suite *UserUpdatePasswordTestSuite) Test() {
 	test.AddCsrfToken(req)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	suite.Equal(http.StatusNoContent, resp.Code)
 }
@@ -48,7 +49,7 @@ func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
 	test.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -63,7 +64,7 @@ func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -76,7 +77,7 @@ func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
-	accessToken := test.UserService.Login()
+	accessToken := test.GetRuntime().Users.Login(fake.User().Email, fake.User().Password)
 	cases := []struct {
 		reqBody  string
 		expected map[string]any
@@ -126,7 +127,7 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 		test.AddBearerToken(req, accessToken)
 		test.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -141,7 +142,7 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	test.GetRuntime().Rdbms.Reset()
 	test.Shutdown()
 }
 

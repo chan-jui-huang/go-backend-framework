@@ -11,8 +11,6 @@ type rdbmsMigration struct {
 	dir string
 }
 
-var RdbmsMigration *rdbmsMigration
-
 func NewRdbmsMigration() *rdbmsMigration {
 	booterConfig := deps.BooterConfig()
 

@@ -14,6 +14,7 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/pagination"
 	"github.com/gorilla/schema"
 	"github.com/stretchr/testify/suite"
@@ -26,8 +27,8 @@ type RoleSearchTestSuite struct {
 
 func (suite *RoleSearchTestSuite) SetupTest() {
 	test.Setup(suite.T())
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	test.GetRuntime().Rdbms.Run()
+	test.GetRuntime().Users.Register(fake.Admin())
 }
 
 func (suite *RoleSearchTestSuite) Test() {
@@ -57,9 +58,9 @@ func (suite *RoleSearchTestSuite) Test() {
 		panic(err)
 	}
 
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	searchRequest := permission.RoleSearchRequest{
 		Name:     role.Name,
@@ -78,7 +79,7 @@ func (suite *RoleSearchTestSuite) Test() {
 	req := httptest.NewRequest("GET", "/api/admin/role?"+queryString.Encode(), nil)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -106,9 +107,9 @@ func (suite *RoleSearchTestSuite) Test() {
 }
 
 func (suite *RoleSearchTestSuite) TestRequestValidationFailed() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 
 	cases := []struct {
 		query    string
@@ -139,7 +140,7 @@ func (suite *RoleSearchTestSuite) TestRequestValidationFailed() {
 		req := httptest.NewRequest("GET", "/api/admin/role"+c.query, nil)
 		test.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -154,11 +155,11 @@ func (suite *RoleSearchTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *RoleSearchTestSuite) TestWrongAccessToken() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	test.GetRuntime().Permissions.AddPermissions()
+	test.GetRuntime().Permissions.GrantAdminToAdminUser()
 	req := httptest.NewRequest("GET", "/api/admin/role", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -171,11 +172,11 @@ func (suite *RoleSearchTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *RoleSearchTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := test.GetRuntime().Users.Login(fake.Admin().Email, fake.Admin().Password)
 	req := httptest.NewRequest("GET", "/api/admin/role", nil)
 	test.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	test.GetRuntime().HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -188,7 +189,7 @@ func (suite *RoleSearchTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleSearchTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	test.GetRuntime().Rdbms.Reset()
 	test.Shutdown()
 }
 
