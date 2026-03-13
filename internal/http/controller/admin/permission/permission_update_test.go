@@ -60,9 +60,7 @@ func (suite *PermissionUpdateTestSuite) SetupTest() {
 }
 
 func (suite *PermissionUpdateTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := permission.PermissionUpdateRequest{
 		Name: "permission2",
@@ -113,8 +111,7 @@ func (suite *PermissionUpdateTestSuite) Test() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -131,9 +128,7 @@ func (suite *PermissionUpdateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	cases := []struct {
 		reqBody  string
@@ -186,8 +181,7 @@ func (suite *PermissionUpdateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestCsrfMismatch() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -203,7 +197,7 @@ func (suite *PermissionUpdateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *PermissionUpdateTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

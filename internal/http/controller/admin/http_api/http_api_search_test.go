@@ -31,9 +31,7 @@ func (suite *HttpApiSearchTestSuite) SetupTest() {
 }
 
 func (suite *HttpApiSearchTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	httpApi := &model.HttpApi{
 		Method: "GET",
@@ -83,9 +81,7 @@ func (suite *HttpApiSearchTestSuite) Test() {
 }
 
 func (suite *HttpApiSearchTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	cases := []struct {
 		query    string
@@ -146,7 +142,7 @@ func (suite *HttpApiSearchTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *HttpApiSearchTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("GET", "/api/admin/http-api", nil)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()

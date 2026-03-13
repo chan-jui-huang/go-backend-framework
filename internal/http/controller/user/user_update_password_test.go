@@ -25,7 +25,7 @@ func (suite *UserUpdatePasswordTestSuite) SetupTest() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) Test() {
-	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	reqBody := user.UserUpdatePasswordRequest{
 		CurrentPassword: "abcABC123",
 		Password:        "abcABC000",
@@ -77,7 +77,7 @@ func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	cases := []struct {
 		reqBody  string
 		expected map[string]any

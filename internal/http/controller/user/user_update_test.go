@@ -26,7 +26,7 @@ func (suite *UserUpdateTestSuite) SetupTest() {
 }
 
 func (suite *UserUpdateTestSuite) Test() {
-	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	reqBody := user.UserUpdateRequest{
 		Name:  "bob",
 		Email: "bob@test.com",
@@ -93,7 +93,7 @@ func (suite *UserUpdateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserUpdateTestSuite) TestRequestValidationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("PUT", "/api/user", bytes.NewReader(reqBodyBytes))
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

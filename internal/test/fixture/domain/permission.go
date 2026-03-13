@@ -1,4 +1,4 @@
-package operator
+package domain
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"gorm.io/gorm"
 )
@@ -98,15 +97,10 @@ func (ps *PermissionFixture) GrantRoleToUser(userId uint, roleName string) {
 	}
 }
 
-func (ps *PermissionFixture) GrantAdminToAdminUser() {
-	adminUser := fake.Admin()
+func (ps *PermissionFixture) GrantAdminToUser(userId uint) {
 	preset := fake.AdminPermissionPreset()
-	u, err := user.Get(ps.tx(), "email = ?", adminUser.Email)
-	if err != nil {
-		panic(err)
-	}
 
-	ps.GrantRoleToUser(u.Id, preset.RoleName)
+	ps.GrantRoleToUser(userId, preset.RoleName)
 }
 
 func (ps *PermissionFixture) tx(associations ...string) *gorm.DB {

@@ -59,9 +59,7 @@ func (suite *PermissionGetTestSuite) SetupTest() {
 }
 
 func (suite *PermissionGetTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)
@@ -90,8 +88,7 @@ func (suite *PermissionGetTestSuite) Test() {
 }
 
 func (suite *PermissionGetTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -107,7 +104,7 @@ func (suite *PermissionGetTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionGetTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()

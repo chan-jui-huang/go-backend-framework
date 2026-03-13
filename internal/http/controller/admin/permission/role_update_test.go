@@ -86,9 +86,7 @@ func (suite *RoleUpdateTestSuite) SetupTest() {
 }
 
 func (suite *RoleUpdateTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := permission.RoleUpdateRequest{
 		Name:          "role2",
@@ -130,9 +128,7 @@ func (suite *RoleUpdateTestSuite) Test() {
 }
 
 func (suite *RoleUpdateTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	cases := []struct {
 		reqBody  string
@@ -173,8 +169,7 @@ func (suite *RoleUpdateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *RoleUpdateTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/role/%d", suite.role.Id), nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -191,8 +186,7 @@ func (suite *RoleUpdateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *RoleUpdateTestSuite) TestCsrfMismatch() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/role/%d", suite.role.Id), nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -208,7 +202,7 @@ func (suite *RoleUpdateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *RoleUpdateTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/admin/role/%d", suite.role.Id), nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

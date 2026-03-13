@@ -26,9 +26,7 @@ func (suite *PermissionCreateTestSuite) SetupTest() {
 }
 
 func (suite *PermissionCreateTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := permission.PermissionCreateRequest{
 		Name: "permission1",
@@ -79,9 +77,7 @@ func (suite *PermissionCreateTestSuite) Test() {
 }
 
 func (suite *PermissionCreateTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	cases := []struct {
 		reqBody  string
@@ -134,8 +130,7 @@ func (suite *PermissionCreateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *PermissionCreateTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/permission", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -152,8 +147,7 @@ func (suite *PermissionCreateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionCreateTestSuite) TestCsrfMismatch() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/permission", nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -169,7 +163,7 @@ func (suite *PermissionCreateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *PermissionCreateTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("POST", "/api/admin/permission", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

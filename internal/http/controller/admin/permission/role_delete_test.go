@@ -30,9 +30,7 @@ func (suite *RoleDeleteTestSuite) SetupTest() {
 }
 
 func (suite *RoleDeleteTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	role := &model.Role{Name: "role1"}
 	permissionModel := &model.Permission{Name: "permission1"}
@@ -101,9 +99,7 @@ func (suite *RoleDeleteTestSuite) Test() {
 }
 
 func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("DELETE", "/api/admin/role", bytes.NewReader(reqBodyBytes))
@@ -126,8 +122,7 @@ func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *RoleDeleteTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -144,8 +139,7 @@ func (suite *RoleDeleteTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *RoleDeleteTestSuite) TestCsrfMismatch() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -161,7 +155,7 @@ func (suite *RoleDeleteTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *RoleDeleteTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

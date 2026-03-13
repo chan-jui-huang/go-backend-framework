@@ -30,7 +30,7 @@ func (suite *UserMeTestSuite) Test() {
 	suite.runtime.Permissions.AddPermissions()
 	suite.runtime.Permissions.GrantRoleToUser(suite.userId, "admin")
 
-	accessToken := suite.runtime.Users.Login(fake.User().Email, fake.User().Password)
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

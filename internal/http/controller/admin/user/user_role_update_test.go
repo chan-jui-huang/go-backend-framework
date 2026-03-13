@@ -101,9 +101,7 @@ func (suite *UserRoleUpdateTestSuite) SetupTest() {
 }
 
 func (suite *UserRoleUpdateTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := user.UserRoleUpdateRequest{
 		UserId:  1,
@@ -142,9 +140,7 @@ func (suite *UserRoleUpdateTestSuite) Test() {
 }
 
 func (suite *UserRoleUpdateTestSuite) TestDeleteAllRoles() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := user.UserRoleUpdateRequest{
 		UserId:  1,
@@ -182,9 +178,7 @@ func (suite *UserRoleUpdateTestSuite) TestDeleteAllRoles() {
 }
 
 func (suite *UserRoleUpdateTestSuite) TestPermissionIsRepeat() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := user.UserRoleUpdateRequest{
 		UserId:  1,
@@ -212,9 +206,7 @@ func (suite *UserRoleUpdateTestSuite) TestPermissionIsRepeat() {
 }
 
 func (suite *UserRoleUpdateTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", bytes.NewReader(reqBodyBytes))
@@ -238,8 +230,7 @@ func (suite *UserRoleUpdateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserRoleUpdateTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -256,8 +247,7 @@ func (suite *UserRoleUpdateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *UserRoleUpdateTestSuite) TestCsrfMismatch() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -273,7 +263,7 @@ func (suite *UserRoleUpdateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserRoleUpdateTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("PUT", "/api/admin/user-role", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

@@ -11,8 +11,9 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
 	dbfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/db"
+	domainfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/domain"
 	httpfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/http"
-	operatorfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/operator"
+	scenariofixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/scenario"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/form/v4"
@@ -28,8 +29,10 @@ type Runtime struct {
 	HTTP        *httpfixture.Handler
 	Rdbms       *dbfixture.RdbmsMigration
 	Clickhouse  *dbfixture.ClickhouseMigration
-	Users       *operatorfixture.UserFixture
-	Permissions *operatorfixture.PermissionFixture
+	Users       *domainfixture.UserFixture
+	Permissions *domainfixture.PermissionFixture
+	UserAPI     *scenariofixture.UserAPI
+	AdminAPI    *scenariofixture.AdminAPI
 }
 
 type RuntimeOptions struct {
@@ -84,6 +87,9 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	httpHandler := httpfixture.New()
 	enforcer := deps.CasbinEnforcer()
 	db := deps.Database()
+	userFixture := domainfixture.NewUserFixture(db)
+	permissionFixture := domainfixture.NewPermissionFixture(enforcer, db)
+	userAPI := scenariofixture.NewUserAPI(httpHandler, userFixture)
 
 	rt := &Runtime{
 		app:         app,
@@ -91,8 +97,10 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 		HTTP:        httpHandler,
 		Rdbms:       dbfixture.NewRdbmsMigration(),
 		Clickhouse:  dbfixture.NewClickhouseMigration(),
-		Users:       operatorfixture.NewUserFixture(httpHandler, db),
-		Permissions: operatorfixture.NewPermissionFixture(enforcer, db),
+		Users:       userFixture,
+		Permissions: permissionFixture,
+		UserAPI:     userAPI,
+		AdminAPI:    scenariofixture.NewAdminAPI(userFixture, permissionFixture, userAPI),
 	}
 
 	if rt.options.UseRdbms {

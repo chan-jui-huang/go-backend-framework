@@ -23,9 +23,7 @@ func (suite *PermissionReloadTestSuite) SetupTest() {
 }
 
 func (suite *PermissionReloadTestSuite) Test() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
@@ -37,8 +35,7 @@ func (suite *PermissionReloadTestSuite) Test() {
 }
 
 func (suite *PermissionReloadTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
@@ -55,8 +52,7 @@ func (suite *PermissionReloadTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionReloadTestSuite) TestCsrfMismatch() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -72,7 +68,7 @@ func (suite *PermissionReloadTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *PermissionReloadTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
 	suite.runtime.HTTP.AddCsrfToken(req)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)

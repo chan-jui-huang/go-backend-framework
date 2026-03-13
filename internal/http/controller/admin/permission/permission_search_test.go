@@ -58,9 +58,7 @@ func (suite *PermissionSearchTestSuite) Test() {
 		panic(err)
 	}
 
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	searchRequest := permission.PermissionSearchRequest{
 		Name: permissionModel.Name,
@@ -101,9 +99,7 @@ func (suite *PermissionSearchTestSuite) Test() {
 }
 
 func (suite *PermissionSearchTestSuite) TestRequestValidationFailed() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	cases := []struct {
 		query    string
@@ -149,8 +145,7 @@ func (suite *PermissionSearchTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *PermissionSearchTestSuite) TestWrongAccessToken() {
-	suite.runtime.Permissions.AddPermissions()
-	suite.runtime.Permissions.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("GET", "/api/admin/permission", nil)
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
@@ -166,7 +161,7 @@ func (suite *PermissionSearchTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionSearchTestSuite) TestAuthorizationFailed() {
-	accessToken := suite.runtime.Users.Login(fake.Admin().Email, fake.Admin().Password)
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("GET", "/api/admin/permission", nil)
 	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
