@@ -72,8 +72,8 @@ Before running the application, install the following:
 
 3. **Seed initial data:**
    ```bash
-   ./bin/database_seeder      # Populate sample database records
-   ./bin/policy_seeder        # Set up access control policies (Casbin)
+   ./bin/rdbms_seeder         # Populate base relational data
+   ./bin/permission_seeder    # Set up access control policies (Casbin)
    ```
 
 4. **Generate JWT secrets:**
@@ -101,7 +101,7 @@ make air
 go run cmd/app/*
 
 # Option C: Production build
-make build && ./bin/app
+make all && ./bin/app
 ```
 
 **Verify the server is running:**
@@ -136,14 +136,14 @@ Database
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **Core Framework** | [go-backend-package](https://github.com/chan-jui-huang/go-backend-package) | 12 modular infrastructure packages (zero cross-dependencies) |
-| **Lifecycle & Bootstrap** | `pkg/app`, `pkg/booter` | Application lifecycle, signal handling, dependency injection |
+| **Lifecycle & Bootstrap** | `fx`, `internal/registrar`, `internal/deps` | Application lifecycle, dependency injection, and typed dependency access |
 | **HTTP Server** | [Gin](https://github.com/gin-gonic/gin) | Fast, lightweight web framework |
 | **Database ORM** | [GORM](https://github.com/go-gorm/gorm) + `pkg/database` | Type-safe database operations with connection pooling |
 | **Authentication** | `pkg/authentication` (Ed25519) | Quantum-resistant JWT token implementation |
 | **Password Hashing** | `pkg/argon2` | GPU-resistant Argon2id password hashing |
 | **Authorization** | [Casbin](https://github.com/casbin/casbin) | Flexible role-based access control (RBAC, ABAC) |
 | **Logging** | `pkg/logger` + [Zap](https://github.com/uber-go/zap) | Structured logging with rotation |
-| **Configuration** | `pkg/booter/config` + [Viper](https://github.com/spf13/viper) | Dual-registry system with env var expansion |
+| **Configuration** | `pkg/booter/config` + [Viper](https://github.com/spf13/viper) | YAML and environment-based configuration with variable expansion |
 | **Caching** | `pkg/redis` + [Redis](https://github.com/redis/go-redis) | In-memory caching with pooling |
 | **Job Scheduling** | `pkg/scheduler` | Cron-style jobs with second-precision timing |
 | **Validation** | [Validator](https://github.com/go-playground/validator) | Struct field validation |
@@ -248,8 +248,8 @@ go-backend-framework/
 │   ├── app/                          # Main HTTP server
 │   │   └── main.go                   # Application bootstrap
 │   └── kit/                          # Helper utilities
-│       ├── database_seeder/          # Populate sample data
-│       ├── policy_seeder/            # Set up Casbin policies
+│       ├── rdbms_seeder/             # Populate base relational data
+│       ├── permission_seeder/        # Set up Casbin policies
 │       ├── jwt/                      # JWT token generation
 │       └── http_route/               # List and validate routes
 │
@@ -272,24 +272,23 @@ go-backend-framework/
 │   │
 │   ├── pkg/                          # Reusable business logic (internal use only)
 │   │   ├── user/                     # User domain logic
-│   │   │   ├── user.go               # Business methods
-│   │   │   └── model/
-│   │   │       └── user.go           # GORM model definition
+│   │   ├── permission/               # Permission domain logic
+│   │   ├── database/                 # Database helper logic
+│   │   ├── model/                    # GORM model definitions
 │   │   └── ...
 │   │
 │   ├── migration/                    # Database versioning
 │   │   ├── rdbms/                    # SQL migrations (MySQL, PostgreSQL)
 │   │   │   ├── 202308xx_create_users_table.sql
 │   │   │   └── ...
-│   │   ├── test/                     # Migrations for testing (SQLite)
-│   │   └── seeder/                   # Database seeders
-│   │       ├── user_seeder.go
-│   │       └── ...
+│   │   ├── rdbms/test/               # RDBMS migrations for testing
+│   │   ├── rdbms/seeder/             # Relational seeders
+│   │   └── clickhouse/               # ClickHouse migrations
 │   │
 │   ├── registrar/                    # Dependency injection & wiring
-│   │   ├── database_registrar.go     # Database initialization
-│   │   ├── authentication_registrar.go
-│   │   ├── redis_registrar.go
+│   │   ├── app.go                    # fx lifecycle registration
+│   │   ├── http.go                   # HTTP server providers
+│   │   ├── scheduler.go              # Scheduler providers
 │   │   └── ...
 │   │
 │   ├── scheduler/                    # Background jobs & cron tasks
@@ -304,7 +303,8 @@ go-backend-framework/
 │       ├── fixture/
 │       │   ├── http/                 # HTTP request helpers and handler fixture
 │       │   ├── db/                   # RDBMS / ClickHouse migration fixtures
-│       │   └── operator/             # User and permission test fixtures
+│       │   ├── domain/               # User and permission domain fixtures
+│       │   └── scenario/             # End-to-end scenario fixtures
 │       └── fake/                     # Fixture data presets
 │
 ├── pkg/                              # Public, reusable packages
@@ -342,43 +342,23 @@ The framework's architecture is built on **go-backend-package** patterns. For co
 
 📚 **[go-backend-package AGENTS.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)**
 
-### Architecture Overview
+### Business Logic Placement
 
-**Dual-Registry System:**
-- **Config Registry**: YAML config with environment variable expansion (`${VAR_NAME}`)
-- **Service Registry**: Initialized service instances via `Registry.Get(key)`
+- Put reusable business logic in `internal/pkg/`
+- Keep controllers, schedulers, and CLI commands focused on input handling, orchestration, and output formatting
+- When a flow is used by a single interface only, keep it in that interface layer until reuse justifies extraction
 
-**Bootstrap Sequence:**
-```
-loadEnv() → bootConfig() → BeforeExecute() → Execute() → AfterExecute()
-                          [Registrar Boot() + Register()]
-```
+### Dependency Access
 
-### Application Lifecycle (pkg/app)
+- Register configuration and services through `fx` providers in `internal/registrar/`
+- Access runtime dependencies through typed helpers in `internal/deps/`
+- Keep bootstrap and lifecycle wiring in `cmd/app/main.go` and registrar packages, not inside business logic
 
-| Phase | Type | Blocking | Purpose |
-|-------|------|----------|---------|
-| STARTING | Sequential | Yes | Pre-startup setup |
-| EXECUTION | Goroutine | No | Main app logic |
-| STARTED | Sequential | Yes | Post-startup hooks |
-| SIGNALS | Goroutines | Yes | OS signal handling (graceful shutdown) |
-| ASYNC | Goroutines | No | Background tasks |
-| TERMINATED | Sequential | Yes | Cleanup & exit |
+### Test Runtime
 
-**In this framework:** See `cmd/app/main.go` for callback registration example.
-
-### Key Modules
-
-| Module | Purpose |
-|--------|---------|
-| **Registrar Pattern** | Modular initialization via `Boot()` + `Register()` methods |
-| **Authentication** | Ed25519 JWT (quantum-resistant) - via `./bin/jwt` |
-| **Authorization** | Casbin RBAC policies - via `cmd/kit/policy_seeder` |
-| **Configuration** | YAML + `.env` file support with variable expansion |
-| **Database** | Goose migrations + GORM ORM wrapper |
-| **Logging** | Zap structured logging with rotation |
-
-**For implementation details, see:** [go-backend-package Architecture](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)
+- Use `internal/test/runtime` to bootstrap test environments
+- Use fixtures from `internal/test/fixture/` and preset data from `internal/test/fake/`
+- Prefer integration-style controller tests that exercise the real HTTP stack and database setup
 
 ---
 
@@ -386,107 +366,12 @@ loadEnv() → bootConfig() → BeforeExecute() → Execute() → AfterExecute()
 
 ### Adding a New API Endpoint
 
-1. **Create the handler** in `internal/http/controller/<domain>/<action>.go`:
-   ```go
-   package user
-
-   import "github.com/gin-gonic/gin"
-
-   type CreateUserRequest struct {
-       Email    string `json:"email" binding:"required,email"`
-       Password string `json:"password" binding:"required"`
-   }
-
-   // @tags user
-   // @accept json
-   // @produce json
-   // @success 201 {object} response.Response{data=User}
-   // @failure 400 {object} response.ErrorResponse
-   // @router /api/user [post]
-   func Create(c *gin.Context) {
-       req := new(CreateUserRequest)
-       if err := c.ShouldBindJSON(req); err != nil {
-           // Handle validation error
-           return
-       }
-
-       // Call service logic
-       userService := service.Registry.Get("user").(*user.Service)
-       result, err := userService.Create(c.Request.Context(), req)
-
-       // Return response
-       c.JSON(http.StatusCreated, response.NewResponse(result))
-   }
-   ```
-
-2. **Add business logic** in `internal/pkg/<domain>/`:
-   ```go
-   package user
-
-   type Service struct {
-       db *gorm.DB
-   }
-
-   func (s *Service) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
-       user := &User{
-           Email:    req.Email,
-           Password: req.Password,
-       }
-       return user, s.db.WithContext(ctx).Create(user).Error
-   }
-   ```
-
-3. **Register route** in `internal/http/route/<domain>/api_route.go`:
-   ```go
-   package user
-
-   import "github.com/gin-gonic/gin"
-
-   type Router struct {
-       router *gin.RouterGroup
-   }
-
-   func NewRouter(router *gin.Engine) *Router {
-       return &Router{
-           router: router.Group("api/user"),
-       }
-   }
-
-   func (r *Router) AttachRoutes() {
-       r.router.POST("", user.Create)  // POST /api/user
-       r.router.GET("me", middleware.Authenticate(), user.Me)
-   }
-   ```
-
-4. **Register router** in `internal/http/route/api_route.go` (if new domain):
-   ```go
-   routers := []route.Router{
-       user.NewRouter(engine),
-       admin.NewRouter(engine),
-       // Add your new router here
-   }
-   ```
-
-5. **Write co-located tests** in `internal/http/controller/<domain>/<action>_test.go`:
-   ```go
-   type UserCreateTestSuite struct {
-       suite.Suite
-       runtime *test.Runtime
-   }
-
-   func (suite *UserCreateTestSuite) SetupTest() {
-       suite.runtime = test.NewRdbmsRuntime(suite.T())
-   }
-   }
-   ```
-
-6. **Add permission** (if protected) in `cmd/kit/permission_seeder/permission_seeder.go`:
-   ```go
-   // Grant "user" role permission to create
-   casbin.AddPolicy("user", "/api/user", "POST")
-   ```
-
-7. **Update Swagger docs**:
+1. **Add or extend business logic** in `internal/pkg/<domain>/` when the flow is reusable across interfaces.
+2. **Create the handler** in `internal/http/controller/<domain>/` and keep it focused on validation, orchestration, and response formatting.
+3. **Register routes** in `internal/http/route/<domain>/api_route.go`, then add new routers to `internal/http/route/api_route.go` when needed.
+4. **Add controller tests** beside the handler and use `internal/test/runtime`, `internal/test/fixture`, and `internal/test/fake` to exercise the real HTTP stack.
+5. **Update permissions** in `cmd/kit/permission_seeder/permission_seeder.go` and mirror any required test fixtures under `internal/test/`.
+6. **Regenerate Swagger docs** after API contract changes:
    ```bash
    make swagger
    ```
@@ -524,13 +409,13 @@ The Swagger UI displays all endpoints, request/response schemas, and allows test
 
 ### Logging
 
-Use `service.Registry.Get("logger")` to access the Zap logger. Logs are written to `storage/log/app.log` and `storage/log/access.log`.
+Structured logs are written to `storage/log/app.log` and `storage/log/access.log` through the registrar-wired logging setup.
 
 For details, refer to: [go-backend-package/pkg/logger](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/logger)
 
 ### Caching with Redis
 
-Access Redis via `service.Registry.Get("redis")` for caching, sessions, and rate limiting.
+Redis is initialized during bootstrap and is available to application packages through typed dependencies and registrar-wired services.
 
 For details, refer to: [go-backend-package/pkg/redis](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/redis)
 
@@ -542,7 +427,7 @@ For details, refer to: [go-backend-package/pkg/argon2](https://github.com/chan-j
 
 ### Background Job Scheduling
 
-The scheduler with **second-precision timing** is started in `startedCallbacks` and stopped in `terminatedCallbacks`. Add jobs in `internal/scheduler/job/`.
+The scheduler with **second-precision timing** is started and stopped through `fx` lifecycle hooks. Add jobs in `internal/scheduler/job/`.
 
 For details, refer to: [go-backend-package/pkg/scheduler](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/scheduler)
 
@@ -651,7 +536,7 @@ func TestUserLoginTestSuite(t *testing.T) {
 
 Built on **[go-backend-package](https://github.com/chan-jui-huang/go-backend-package)** with 12 modular packages (zero cross-dependencies):
 
-**Bootstrap & Lifecycle**: [pkg/app](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/app), [pkg/booter](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/booter)
+**Bootstrap & Configuration**: [pkg/booter](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/booter)
 
 **Data & Storage**: [pkg/database](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/database), [pkg/redis](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/redis), [pkg/clickhouse](https://github.com/chan-jui-huang/go-backend-package/tree/main/pkg/clickhouse)
 
