@@ -6,14 +6,15 @@ This document guides AI agents and contributors working in this repository. It d
 - `bin/`: Build artifacts emitted by the Makefile targets (created on demand).
 - `cmd/app`: Main HTTP entrypoint and wiring; builds to `bin/app`.
 - `cmd/kit`: Helper CLIs (`jwt`, `http_route`, `rdbms_seeder`, `permission_seeder`).
-- `cmd/template`: Minimal bootstrap executable that wires registrars; useful for scaffolding.
+- `cmd/template`: Minimal `fx` bootstrap executable that wires registrar providers and invokes; useful for scaffolding.
 - `internal`: Domain logic and supporting modules with colocated tests (`*_test.go`).
+  - `deps/`: Typed accessors for config and service dependencies populated during `fx` bootstrap.
   - `http/`: Gin HTTP stack — `controller/`, `middleware/`, `response/`, `route/`, `server.go`.
   - `scheduler/`: Background jobs (cron-like tasks) and example jobs under `job/`.
-  - `registrar/`: Service and dependency registration for bootstrapping.
+  - `registrar/`: `fx` providers, lifecycle hooks, and dependency registration used during bootstrap.
   - `pkg/`: Project-specific packages (database, models, permission logic, user domain helpers, etc.).
   - `migration/`: Database migrations split into `rdbms/` and `clickhouse/` trees.
-  - `test/`: Fixtures and helpers for tests (admin, permission, migration, HTTP utilities).
+  - `test/`: `fx`-based test runtime plus fixtures under `runtime/`, `fixture/{db,domain,http,scenario}/`, and `fake/`.
 - `docs`: Swagger outputs (`swagger.json|yaml`, `docs.go`).
 - `deployment/`: Docker assets (e.g., `deployment/docker/`).
 - `storage`: Runtime artifacts such as `storage/log/access.log` and `storage/log/app.log`.
@@ -31,36 +32,34 @@ This document guides AI agents and contributors working in this repository. It d
 
 **Foundation:** The framework is built on **[go-backend-package](https://github.com/chan-jui-huang/go-backend-package)** with 12 modular packages and zero cross-dependencies. For comprehensive architectural details, refer to: **[go-backend-package AGENTS.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)**
 
-### Dual-Registry System
-- **Config Registry**: YAML configuration with environment variable expansion (`${VAR_NAME}`)
-- **Service Registry**: Initialized service instances accessed via `service.Registry.Get(key)`
+### Dependency Wiring
+- **Config Snapshot**: YAML configuration with environment variable expansion (`${VAR_NAME}`) is loaded through registrar providers and stored in `internal/deps`.
+- **Service Snapshot**: Initialized services are built by `fx` providers and exposed to existing code through typed `internal/deps` accessors.
 
 ### Bootstrap Sequence
 
 ```
-loadEnv() → bootConfig() → BeforeExecute() → Execute() → AfterExecute()
-                           [Registrar Boot() + Register()]
+load env/autoload → build booter config → fx.Supply + fx.Provide
+                  → fx.Invoke(RegisterConfigDependencies, RegisterServiceDependencies)
+                  → fx lifecycle hooks start validator, scheduler, and HTTP server
 ```
 
-### Application Lifecycle Phases (pkg/app)
+### Application Lifecycle Hooks (`fx`)
 
-| Phase | Type | Blocking | Purpose |
-|-------|------|----------|---------|
-| STARTING | Sequential | Yes | Pre-startup setup and initialization |
-| EXECUTION | Goroutine | No | Main application logic runs here |
-| STARTED | Sequential | Yes | Post-startup hooks and callbacks |
-| SIGNALS | Goroutines | Yes | OS signal handling for graceful shutdown |
-| ASYNC | Goroutines | No | Background tasks and scheduled jobs |
-| TERMINATED | Sequential | Yes | Cleanup and resource release before exit |
+| Hook | Registration | Purpose |
+|------|--------------|---------|
+| Validator | `fx.OnStart` | Register request-validation tag name handling before requests are served |
+| Scheduler | `fx.OnStart` / `fx.OnStop` | Start and stop background jobs |
+| HTTP Server | `fx.OnStart` / `fx.OnStop` | Run the Gin server and perform graceful shutdown |
 
-See `cmd/app/main.go` for callback registration examples.
+See `cmd/app/main.go` for the canonical `fx` wiring example.
 
 ### Key Architectural Patterns
 
 | Pattern | Purpose |
 |---------|---------|
-| **Registrar Pattern** | Modular initialization via `Boot()` + `Register()` methods |
-| **Dependency Injection** | Services registered and retrieved via Service Registry |
+| **Fx Provider Pattern** | Modular initialization is composed through registrar constructors and invokes |
+| **Dependency Injection** | `fx` builds dependencies, and `internal/deps` exposes typed accessors for runtime/test code |
 | **Configuration Management** | YAML + `.env` file support with variable expansion |
 | **Database Layer** | Goose migrations + GORM ORM wrapper for type-safe operations |
 | **Authentication** | Ed25519 JWT (quantum-resistant) generated via `./bin/jwt` |
@@ -206,8 +205,8 @@ When adding a new API endpoint:
 2. **REQUIRED**: Implement or extend business logic in `internal/pkg/<domain>` (e.g., `internal/pkg/user`, `internal/pkg/permission`) BEFORE writing controller code. Controllers MUST delegate to `internal/pkg/` and never contain business logic directly. Keep helpers reusable and include unit tests where practical.
 3. Wire routes in the corresponding router under `internal/http/route/<area>/api_route.go`, ensuring it implements `route.Router` and guards handlers with middleware as needed.
 4. If you introduce a brand-new router, register it in `internal/http/route/api_route.go` by appending it to the `routers` slice so it participates in `AttachRoutes`.
-5. For admin/protected capabilities, synchronise seeds between runtime and tests: update `cmd/kit/permission_seeder/permission_seeder.go` and mirror the same permissions/roles in `internal/test/permission_service.go` (and adjust `internal/test/admin_service.go` when admin fixtures change).
-6. Whenever you introduce a new mock service (gomock or hand-written), also register an empty instance in `internal/test/test.go:emptyMockedServices()` so the test harness has placeholders for injected services.
+5. For admin/protected capabilities, synchronise seeds between runtime and tests: update `cmd/kit/permission_seeder/permission_seeder.go` and mirror the same permission preset in `internal/test/fake/permission.go`; adjust `internal/test/fixture/domain/permission.go` or `internal/test/fixture/scenario/admin_api.go` when the admin fixture flow changes.
+6. Whenever you introduce a new mock service (gomock or hand-written), also register an empty instance in `internal/test/runtime/runtime.go:emptyMockedServices()` so the test harness has placeholders for injected services.
 
 General guidance:
 - Keep changes minimal and localized; avoid unrelated refactors.
@@ -218,8 +217,8 @@ General guidance:
 ## Testing Guidelines
 - Test framework: standard `testing`; `testify` is available for assertions.
 - Location: place `*_test.go` files alongside the code they cover; prefer table-driven tests or testify suites.
-- Bootstrapping: leverage `internal/test` utilities for environment loading, seeded users, migrations, and CSRF helpers instead of reimplementing setup logic.
-- Mock services: when introducing a new mock service, also register it in `internal/test/test.go` within `emptyMockedServices` so the test harness initializes it.
+- Bootstrapping: leverage `internal/test/runtime` and `internal/test/fixture/*` helpers for environment loading, migrations, HTTP handlers, seeded users, and scenario setup instead of reimplementing test wiring.
+- Mock services: when introducing a new mock service, also register it in `internal/test/runtime/runtime.go` within `emptyMockedServices` so the test harness initializes it.
 - Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.test` to provide DSNs and secrets.
 - Coverage: exercise both success and failure paths. **REQUIRED**: Test all possible return values from controllers (success, validation failures, auth failures, business errors). Reference existing patterns in `internal/http/controller/**/*_test.go`. Document skipped integration tests in PR descriptions. Add controller/service tests whenever adding new endpoints.
 
