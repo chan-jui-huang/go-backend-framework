@@ -157,24 +157,7 @@ Every controller MUST test ALL possible return scenarios including but not limit
 
 Integration tests validate real-world behavior and catch configuration errors, connection issues, and integration bugs that unit tests miss. Writing tests first forces clear requirements and prevents untested code. Comprehensive mock verification helps ensure that, along the tested execution paths, the system not only returns the expected results but also calls the right collaborators with the right arguments at the right time.
 
-### IV. Semantic Versioning with Conventional Commits
-
-All changes MUST follow Git-based version control with semantic versioning and Conventional Commits 1.0.0 specification.
-
-**Non-negotiable rules:**
-- Commit messages MUST follow format: `<type>[optional scope]: <description>`
-- Commit types: `feat`, `fix`, `chore`, `docs`, `refactor`, `perf`, `test`, `ci`, `build`
-- Breaking changes MUST be marked with `!` or `BREAKING CHANGE:` footer
-- Version numbers MUST follow MAJOR.MINOR.PATCH:
-  - MAJOR: Breaking changes (incompatible API changes, removed features)
-  - MINOR: New features (backward-compatible functionality additions)
-  - PATCH: Bug fixes (backward-compatible corrections)
-- All commits MUST be atomic (single logical change)
-- Commit messages MUST be in English with correct grammar
-
-**Rationale:** Conventional commits enable automated changelog generation, semantic versioning enforcement, and clear change history. Semantic versioning communicates impact to consumers.
-
-### V. Separation of Concerns (Layered Architecture)
+### IV. Separation of Concerns (Layered Architecture)
 
 The framework MUST maintain strict separation between business logic and interface layers.
 
@@ -316,45 +299,11 @@ The system MUST be organized into distinct architectural layers with clear respo
 
 ### Security Requirements
 
-- NEVER commit secrets (use environment-specific configuration files)
-- NEVER update git config via automation
-- NEVER run destructive git commands (`push --force`, `hard reset`) without explicit user request
-- NEVER skip git hooks (`--no-verify`, `--no-gpg-sign`) unless explicitly requested
 - ALL user input MUST be validated before processing
 - Passwords MUST use Argon2id hashing (never bcrypt or plain SHA)
 - JWT tokens MUST use Ed25519 signatures
 - Error messages MUST NOT leak sensitive information (stack traces, SQL queries)
 - Database credentials MUST come from environment variables, never hardcoded
-
-### Commit Guidelines
-
-**Required format:**
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-**Best practices:**
-- Combine conversation context with `git diff --staged` when drafting messages
-- Keep subject line under 72 characters
-- Use imperative mood ("add feature" not "added feature")
-- Reference issues in footer: `Fixes #123`, `Relates to #456`
-- Include Co-Authored-By when appropriate
-
-**Example:**
-```
-feat(user): add password reset endpoint
-
-Implements user story US-042 for self-service password reset.
-Adds new POST /api/user/reset-password endpoint with email validation.
-
-BREAKING CHANGE: /api/user/password endpoint removed; use /api/user/reset-password
-
-Fixes #123
-```
 
 ## Governance
 
