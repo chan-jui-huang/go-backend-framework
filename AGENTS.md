@@ -249,6 +249,48 @@ General guidance:
 - Behavior: Be precise, safe, and helpful. Do not fix unrelated bugs. Ask for clarification when requirements are ambiguous.
 - Formatting: Follow existing code style. Avoid intrusive refactors not required by the task.
 
+## GitHub Copilot Instructions Compatibility
+
+To mirror GitHub Copilot coding agent behavior for repository custom instructions, agents working in this repository MUST also load applicable instruction files under `.github/`.
+
+### Supported Instruction Sources
+- Repository-wide instructions: `.github/copilot-instructions.md`
+- Path-specific instructions: `.github/instructions/**/*.instructions.md`
+- Agent instructions: this `AGENTS.md` file and any more deeply nested `AGENTS.md` files
+
+### When To Load `.github/instructions`
+- Before planning, editing, reviewing, or generating code for specific files, determine the in-scope target files first.
+- Load every `.github/instructions/**/*.instructions.md` file whose front matter `applyTo` glob matches at least one in-scope file.
+- Re-evaluate applicable path-specific instructions whenever the scope changes to additional files or directories.
+- If the task is repository-wide and no concrete file is known yet, first inspect likely target files, then load matching path-specific instructions before making code changes.
+
+### Path Matching Rules
+- Path-specific instruction files MUST end with `.instructions.md`.
+- The file MUST begin with front matter containing `applyTo`.
+- `applyTo` uses glob syntax and may contain multiple comma-separated patterns such as `**/*.go,**/go.mod,**/go.sum`.
+- Match `applyTo` patterns against repository-relative paths.
+- If multiple path-specific instruction files match, combine all of them.
+
+### `excludeAgent` Rules
+- If a path-specific instruction file contains `excludeAgent: "coding-agent"`, agents MUST ignore that file.
+- If `excludeAgent` is omitted, treat the file as applicable to coding agents.
+- `excludeAgent: "code-review"` does not exclude coding agents and should still be applied for implementation tasks.
+
+### Effective Precedence
+- For repository custom instruction compatibility, use this Copilot-aligned order inside the repository:
+  1. Matching path-specific instructions from `.github/instructions/**/*.instructions.md`
+  2. Repository-wide instructions from `.github/copilot-instructions.md`
+  3. Agent instructions from `AGENTS.md`
+- When instructions conflict, prefer the higher item in the list above.
+- Direct user instructions still override repository instruction files.
+- A more deeply nested `AGENTS.md` still overrides this file for its subtree, but it does not cancel applicable `.github/instructions` matches unless it states so explicitly.
+
+### Operational Notes
+- Treat `.github` instruction files as additive guidance, similar to how Copilot combines multiple relevant instruction sources.
+- Keep `.github` instruction files short, concrete, and broadly reusable for the paths they target.
+- Do not assume `.github/copilot-instructions.md` exists; load it only if present.
+- For reviews, analysis, and code generation involving Go files in this repository, the existing `.github/instructions/go.instructions.md` file applies to `**/*.go`, `**/go.mod`, and `**/go.sum` unless a future change narrows or excludes it.
+
 ## Specification-Driven Development with SpecKit
 
 This project uses [SpecKit](https://github.com/github/spec-kit) for specification-driven development. SpecKit provides a structured workflow from feature specification to implementation.
