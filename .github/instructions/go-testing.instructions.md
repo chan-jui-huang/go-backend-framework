@@ -6,12 +6,6 @@ applyTo: '**/*_test.go'
 
 ### Integration-First Testing (Test-Driven Development)
 
-Tests MUST be written BEFORE implementation (Red-Green-Refactor). Integration tests take priority over isolated unit tests.
-
-#### Test-Driven Development Process
-
-**Non-negotiable rules:**
-
 - Write contract/integration tests FIRST before any implementation
 - Tests MUST fail initially (Red phase) to prove they test real behavior
 - Tests MUST be colocated with implementation following language conventions
@@ -58,35 +52,10 @@ Mock verification MUST cover all interactions that define the behavior under tes
 
 #### Controller Testing Requirements
 
-Every controller MUST test ALL possible return scenarios including but not limited to:
-
-**Success Cases:**
-- 200 OK, 201 Created, 204 No Content (with expected data/empty body)
-
-**Client Errors (4xx):**
-- **400 Bad Request**: Invalid input format, malformed JSON, type mismatches
-- **401 Unauthorized**: Missing token, expired token, invalid token signature
-- **403 Forbidden**: Valid authentication but insufficient permissions, role-based access denial
-- **404 Not Found**: Resource does not exist, invalid resource ID
-- **409 Conflict**: Duplicate entries (e.g., email already exists), concurrent modification conflicts
-- **422 Unprocessable Entity**: Business rule violations (e.g., insufficient balance, invalid state transitions)
-- **429 Too Many Requests**: Rate limit exceeded
-
-**Server Errors (5xx):**
-- **500 Internal Server Error**: Unexpected exceptions, database connection failures
-- **503 Service Unavailable**: External service timeouts, circuit breaker open
-
-**Edge Cases and Boundary Conditions:**
-- Empty request bodies, null values, missing required fields
-- Maximum/minimum value boundaries (e.g., string length limits, numeric ranges)
-- Special characters and Unicode in text fields
-- Large payloads approaching size limits
-- Concurrent requests with race conditions
-- Database constraint violations (foreign key, unique, not null)
+- Every controller test suite MUST cover success, validation failure, authentication failure, authorization failure, not found, business error, and server error scenarios when those outcomes are reachable
+- Tests SHOULD include malformed input, relevant boundary conditions, and other scenario-specific cases for the handler as needed
 
 ## API Development Workflow
-
-When developing a new API endpoint, follow this mandatory pattern:
 
 #### Testing Requirements
 
@@ -94,10 +63,6 @@ When developing a new API endpoint, follow this mandatory pattern:
 - Test coverage must include:
   - Success case (200 OK with expected data)
   - All error cases (validation failures, authentication/authorization failures, business logic errors)
-  - Edge cases and boundary conditions
+  - Edge cases, boundary conditions, and other relevant scenarios
 - Reference existing tests in `internal/http/controller/**/*_test.go` for patterns
 - Example: `internal/http/controller/user/user_register_test.go` demonstrates testing multiple return paths
-
-#### Rationale
-
-Integration tests validate real-world behavior and catch configuration errors, connection issues, and integration bugs that unit tests miss. Writing tests first forces clear requirements and prevents untested code. Comprehensive mock verification helps ensure that, along the tested execution paths, the system not only returns the expected results but also calls the right collaborators with the right arguments at the right time.
