@@ -7,7 +7,7 @@ metadata:
   description: 'Create a reusable SKILL.md that packages a workflow extracted from a conversation.'
   scope: workspace
   applyTo:
-    - '.github/skills/**'
+    - '.agents/skills/**'
   inputs:
     - name: goal
       type: string
@@ -52,14 +52,14 @@ This guide walks you through the create-skill workflow: how to turn a conversati
    - Update wording, add examples, and tighten acceptance criteria until the example reliably produces the expected Skill content.
 
 6. Finalize and save
-   - Place the file at `.github/skills/<skill-name>/SKILL.md`, set an appropriate version, and add a short changelog entry for non-trivial changes.
+   - Place the file at `.agents/skills/<skill-name>/SKILL.md`, set an appropriate version, and add a short changelog entry for non-trivial changes.
 
 ## Example prompts
 
 - Starter prompt to create a SKILL.md draft:
 
 ```
-Create a SKILL.md that implements a PR checklist workflow: scope it to `workspace`, and include an example prompt that takes a PR number and returns a short checklist and a sample markdown report. Output the full SKILL.md content ready for `.github/skills/pr-check/SKILL.md`.
+Create a SKILL.md that implements a PR checklist workflow: scope it to `workspace`, and include an example prompt that takes a PR number and returns a short checklist and a sample markdown report. Output the full SKILL.md content ready for `.agents/skills/pr-check/SKILL.md`.
 ```
 
 ## Example of expected SKILL.md sections (summary)
