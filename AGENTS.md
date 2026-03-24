@@ -130,10 +130,6 @@ General guidance:
 - Provide `.env.test` and `.env.staging` locally when needed; avoid committing real values.
 - Validate configuration via `make run` and integration tests before deployment.
 
-## Commit & PR Guidelines
-- Use `.github/skills/commit-message-writer` for commit message drafting guidance.
-- Before opening a PR, run `make linter` and `make test`, summarize behavioral changes, link relevant issues, and attach API diffs or screenshots when endpoints or docs change.
-
 ## Helper CLIs (under `cmd/kit`)
 - `jwt`: Issue and inspect JWTs for environment-specific usage.
 - `http_route`: Generate or lint HTTP route scaffolding.
