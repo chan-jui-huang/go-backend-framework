@@ -137,8 +137,6 @@ General guidance:
 - `permission_seeder`: Seed Casbin roles, permissions, and grouping policies.
 
 ## Agent Notes & Precedence
-- Scope: This file applies to the entire repository.
-- Precedence: More deeply nested AGENTS.md files override this one for their subtree.
 - Behavior: Be precise, safe, and helpful. Do not fix unrelated bugs. Ask for clarification when requirements are ambiguous.
 - Formatting: Follow existing code style. Avoid intrusive refactors not required by the task.
 
