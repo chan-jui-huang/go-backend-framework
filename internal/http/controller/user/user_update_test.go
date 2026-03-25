@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/decoder"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -48,8 +48,7 @@ func (suite *UserUpdateTestSuite) Test() {
 	}
 
 	data := &user.UserData{}
-	decoder := deps.MapstructureDecoder()
-	if err := decoder(respBody.Data, data); err != nil {
+	if err := decoder.Decode(respBody.Data, data); err != nil {
 		panic(err)
 	}
 

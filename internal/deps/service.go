@@ -22,7 +22,6 @@ type ServiceState struct {
 	RedisValue          *redisClient.Client
 	AuthenticatorValue  *authentication.Authenticator
 	CasbinEnforcerValue *casbin.SyncedCachedEnforcer
-	MapstructureDecoder func(any, any) error
 	ClickhouseValue     driver.Conn
 	FormDecoder         *form.Decoder
 	Modifier            *mold.Transformer
@@ -67,10 +66,6 @@ func Authenticator() *authentication.Authenticator {
 
 func CasbinEnforcer() *casbin.SyncedCachedEnforcer {
 	return CurrentService().CasbinEnforcerValue
-}
-
-func MapstructureDecoder() func(any, any) error {
-	return CurrentService().MapstructureDecoder
 }
 
 func Clickhouse() driver.Conn {
