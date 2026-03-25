@@ -3,8 +3,8 @@ package registrar
 import (
 	"context"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
 	booterconfig "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter/config"
 )
 

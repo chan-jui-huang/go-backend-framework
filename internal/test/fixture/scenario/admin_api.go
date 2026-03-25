@@ -1,8 +1,8 @@
 package scenario
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
-	domainfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/domain"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
+	domainfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
 )
 
 type AdminAPI struct {

@@ -1,10 +1,10 @@
 package admin
 
 import (
-	httpapi "github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/admin/http_api"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/admin/permission"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/admin/user"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
+	httpapi "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/permission"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/user"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
 	"github.com/gin-gonic/gin"
 )
 

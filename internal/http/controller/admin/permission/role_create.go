@@ -3,11 +3,11 @@ package permission
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"

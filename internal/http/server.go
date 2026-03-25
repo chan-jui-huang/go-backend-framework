@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,8 +1,8 @@
 package route
 
 import (
-	_ "github.com/chan-jui-huang/go-backend-framework/v2/docs"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	_ "github.com/chan-jui-huang/go-backend-framework/v3/docs"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"

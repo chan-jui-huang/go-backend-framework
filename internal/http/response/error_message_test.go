@@ -3,7 +3,7 @@ package response_test
 import (
 	"testing"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/stretchr/testify/assert"
 )
 

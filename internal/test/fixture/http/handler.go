@@ -3,10 +3,10 @@ package http
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	pkgHttp "github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	pkgHttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/gin-gonic/gin"
 )
 

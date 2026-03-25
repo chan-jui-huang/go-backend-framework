@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

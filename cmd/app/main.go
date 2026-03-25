@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	internalhttp "github.com/chan-jui-huang/go-backend-framework/v2/internal/http"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
+	internalhttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/mold/v4/modifiers"
