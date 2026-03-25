@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -65,23 +64,23 @@ func (srv *Server) Run() {
 	}
 
 	srv.server.Handler = engine.Handler()
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 
 	if err := srv.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(err.Error())
 	}
 }
 
-func (srv *Server) GracefulShutdown(ctx context.Context) {
-	<-ctx.Done()
-
-	ctx, cancel := context.WithTimeout(context.Background(), srv.config.GracefulShutdownTtl)
+func (srv *Server) Shutdown(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, srv.config.GracefulShutdownTtl)
 	defer cancel()
 
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 	logger.Info("server start to shutdown")
 	if err := srv.server.Shutdown(ctx); err != nil {
-		logger.Error(err.Error())
+		return err
 	}
 	logger.Info("server end to shutdown")
+
+	return nil
 }

@@ -6,15 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 func Recover() gin.HandlerFunc {
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 
 	return func(c *gin.Context) {
 		defer func() {

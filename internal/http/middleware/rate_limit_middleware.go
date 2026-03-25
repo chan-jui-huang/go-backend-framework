@@ -1,20 +1,15 @@
 package middleware
 
 import (
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/config"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
 
-type RateLimitConfig struct {
-	PutTokenRate rate.Limit
-	BurstNumber  int
-}
-
-func RateLimit(config RateLimitConfig) gin.HandlerFunc {
+func RateLimit(config config.RateLimitConfig) gin.HandlerFunc {
 	limiter := rate.NewLimiter(
 		config.PutTokenRate,
 		config.BurstNumber,
@@ -22,7 +17,7 @@ func RateLimit(config RateLimitConfig) gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/skip-path": true,
 	}
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 
 	return func(c *gin.Context) {
 		if skipPaths[c.Request.URL.Path] || limiter.Allow() {

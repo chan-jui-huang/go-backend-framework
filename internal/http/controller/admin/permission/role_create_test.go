@@ -8,30 +8,30 @@ import (
 	"testing"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/admin/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 )
 
 type RoleCreateTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *RoleCreateTestSuite) SetupTest() {
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
+	suite.runtime.Users.Register(fake.Admin())
 }
 
 func (suite *RoleCreateTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	permissionModel := &model.Permission{Name: "permission1"}
 	casbinRules := []gormadapter.CasbinRule{
@@ -68,17 +68,17 @@ func (suite *RoleCreateTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("POST", "/api/admin/role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
 		panic(err)
 	}
 
-	decoder := service.Registry.Get("mapstructureDecoder").(func(any, any) error)
+	decoder := deps.MapstructureDecoder()
 	data := &permission.RoleData{}
 	if err := decoder(respBody.Data, data); err != nil {
 		panic(err)
@@ -98,9 +98,7 @@ func (suite *RoleCreateTestSuite) Test() {
 }
 
 func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	cases := []struct {
 		reqBody  string
@@ -123,10 +121,10 @@ func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("POST", "/api/admin/role", bytes.NewReader([]byte(c.reqBody)))
-		test.AddCsrfToken(req)
-		test.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddCsrfToken(req)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		suite.runtime.HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -141,12 +139,11 @@ func (suite *RoleCreateTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *RoleCreateTestSuite) TestWrongAccessToken() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -159,11 +156,10 @@ func (suite *RoleCreateTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *RoleCreateTestSuite) TestCsrfMismatch() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -176,12 +172,12 @@ func (suite *RoleCreateTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *RoleCreateTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("POST", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -194,7 +190,7 @@ func (suite *RoleCreateTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleCreateTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	suite.runtime.Close()
 }
 
 func TestRoleCreateTestSuite(t *testing.T) {

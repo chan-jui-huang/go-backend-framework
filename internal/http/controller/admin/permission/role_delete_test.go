@@ -14,23 +14,23 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 )
 
 type RoleDeleteTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *RoleDeleteTestSuite) SetupTest() {
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
+	suite.runtime.Users.Register(fake.Admin())
 }
 
 func (suite *RoleDeleteTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	role := &model.Role{Name: "role1"}
 	permissionModel := &model.Permission{Name: "permission1"}
@@ -90,25 +90,23 @@ func (suite *RoleDeleteTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("DELETE", "/api/admin/role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	suite.Equal(http.StatusNoContent, resp.Code)
 }
 
 func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("DELETE", "/api/admin/role", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -124,12 +122,11 @@ func (suite *RoleDeleteTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *RoleDeleteTestSuite) TestWrongAccessToken() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -142,11 +139,10 @@ func (suite *RoleDeleteTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *RoleDeleteTestSuite) TestCsrfMismatch() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -159,12 +155,12 @@ func (suite *RoleDeleteTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *RoleDeleteTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("DELETE", "/api/admin/role", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -177,7 +173,7 @@ func (suite *RoleDeleteTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *RoleDeleteTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	suite.runtime.Close()
 }
 
 func TestRoleDeleteTestSuite(t *testing.T) {

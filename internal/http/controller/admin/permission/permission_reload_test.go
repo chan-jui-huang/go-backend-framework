@@ -8,39 +8,38 @@ import (
 
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 )
 
 type PermissionReloadTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *PermissionReloadTestSuite) SetupTest() {
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
+	suite.runtime.Users.Register(fake.Admin())
 }
 
 func (suite *PermissionReloadTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	suite.Equal(http.StatusNoContent, resp.Code)
 }
 
 func (suite *PermissionReloadTestSuite) TestWrongAccessToken() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -53,11 +52,10 @@ func (suite *PermissionReloadTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionReloadTestSuite) TestCsrfMismatch() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -70,12 +68,12 @@ func (suite *PermissionReloadTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *PermissionReloadTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("POST", "/api/admin/permission/reload", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -88,7 +86,7 @@ func (suite *PermissionReloadTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *PermissionReloadTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	suite.runtime.Close()
 }
 
 func TestPermissionReloadTestSuite(t *testing.T) {

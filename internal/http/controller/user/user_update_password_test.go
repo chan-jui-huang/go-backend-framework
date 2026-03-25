@@ -10,20 +10,22 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 )
 
 type UserUpdatePasswordTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
 }
 
 func (suite *UserUpdatePasswordTestSuite) SetupTest() {
-	test.RdbmsMigration.Run()
-	test.UserService.Register()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
+	suite.runtime.Users.Register(fake.User())
 }
 
 func (suite *UserUpdatePasswordTestSuite) Test() {
-	accessToken := test.UserService.Login()
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	reqBody := user.UserUpdatePasswordRequest{
 		CurrentPassword: "abcABC123",
 		Password:        "abcABC000",
@@ -35,19 +37,19 @@ func (suite *UserUpdatePasswordTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("PUT", "/api/user/password", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	suite.Equal(http.StatusNoContent, resp.Code)
 }
 
 func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -62,7 +64,7 @@ func (suite *UserUpdatePasswordTestSuite) TestWrongAccessToken() {
 func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 	req := httptest.NewRequest("PUT", "/api/user/password", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -75,7 +77,7 @@ func (suite *UserUpdatePasswordTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
-	accessToken := test.UserService.Login()
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	cases := []struct {
 		reqBody  string
 		expected map[string]any
@@ -122,10 +124,10 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 
 	for _, c := range cases {
 		req := httptest.NewRequest("PUT", "/api/user/password", bytes.NewReader([]byte(c.reqBody)))
-		test.AddBearerToken(req, accessToken)
-		test.AddCsrfToken(req)
+		suite.runtime.HTTP.AddBearerToken(req, accessToken)
+		suite.runtime.HTTP.AddCsrfToken(req)
 		resp := httptest.NewRecorder()
-		test.HttpHandler.ServeHTTP(resp, req)
+		suite.runtime.HTTP.ServeHTTP(resp, req)
 
 		respBody := &response.ErrorResponse{}
 		if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -140,7 +142,7 @@ func (suite *UserUpdatePasswordTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *UserUpdatePasswordTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	suite.runtime.Close()
 }
 
 func TestUserUpdatePasswordTestSuite(t *testing.T) {

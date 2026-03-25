@@ -3,7 +3,7 @@ package seeder
 import (
 	"fmt"
 
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"gorm.io/gorm"
 )
 
@@ -41,7 +41,7 @@ func (se *SeederExecutor) Run(seeders []string) {
 		seeders = se.order
 	}
 
-	database := service.Registry.Get("database").(*gorm.DB)
+	database := deps.Database()
 	err := database.Transaction(func(tx *gorm.DB) error {
 		for _, seeder := range seeders {
 			if fn, ok := se.runSeederFuncs[seeder]; ok {

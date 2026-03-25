@@ -8,10 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/config"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/stacktrace"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/stacktrace"
 	"go.uber.org/zap"
 )
 
@@ -38,7 +36,7 @@ func NewErrorResponse(message string, err error, context map[string]any) *ErrorR
 		debug.Error = err.Error()
 	}
 
-	booterConfig := config.Registry.Get("booter").(booter.Config)
+	booterConfig := deps.BooterConfig()
 	if booterConfig.Debug {
 		return &ErrorResponse{
 			Message: message,
@@ -63,7 +61,7 @@ func (er *ErrorResponse) StatusCode() int {
 		0,
 	)
 	if err != nil {
-		logger := service.Registry.Get("logger").(*zap.Logger)
+		logger := deps.Logger()
 		logger.Error(err.Error())
 		code = http.StatusBadRequest
 	}
@@ -74,7 +72,7 @@ func (er *ErrorResponse) StatusCode() int {
 func (er *ErrorResponse) MakeLogFields(req *http.Request, fields ...zap.Field) []zap.Field {
 	requestBody, err := io.ReadAll(req.Body)
 	if err != nil {
-		logger := service.Registry.Get("logger").(*zap.Logger)
+		logger := deps.Logger()
 		logger.Error(err.Error())
 		requestBody = nil
 	}
@@ -82,7 +80,7 @@ func (er *ErrorResponse) MakeLogFields(req *http.Request, fields ...zap.Field) [
 		buffer := bytes.NewBuffer(make([]byte, 0, len(requestBody)))
 		err = json.Compact(buffer, requestBody)
 		if err != nil {
-			logger := service.Registry.Get("logger").(*zap.Logger)
+			logger := deps.Logger()
 			logger.Error(err.Error())
 			requestBody = nil
 		} else {
@@ -91,7 +89,7 @@ func (er *ErrorResponse) MakeLogFields(req *http.Request, fields ...zap.Field) [
 	}
 
 	var debug *Debug
-	booterConfig := config.Registry.Get("booter").(booter.Config)
+	booterConfig := deps.BooterConfig()
 	if booterConfig.Debug {
 		debug = er.Debug
 	} else {

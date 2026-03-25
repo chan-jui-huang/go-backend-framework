@@ -3,12 +3,10 @@ package permission
 import (
 	"net/http"
 
-	"github.com/casbin/casbin/v3"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 // @tags admin-permission
@@ -23,10 +21,10 @@ import (
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/permission/reload [post]
 func Reload(c *gin.Context) {
-	enforcer := service.Registry.Get("casbinEnforcer").(*casbin.SyncedCachedEnforcer)
+	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger := service.Registry.Get("logger").(*zap.Logger)
+		logger := deps.Logger()
 		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

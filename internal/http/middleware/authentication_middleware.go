@@ -4,20 +4,19 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
-	"github.com/chan-jui-huang/go-backend-package/pkg/authentication"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 func Authenticate() gin.HandlerFunc {
-	logger := service.Registry.Get("logger").(*zap.Logger)
-	authenticator := service.Registry.Get("authentication.authenticator").(*authentication.Authenticator)
+	logger := deps.Logger()
+	authenticator := deps.Authenticator()
 	return func(c *gin.Context) {
 		authorizationHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authorizationHeader, "Bearer") {

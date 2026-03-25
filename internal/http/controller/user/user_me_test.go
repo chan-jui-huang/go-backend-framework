@@ -6,32 +6,36 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 )
 
 type UserMeTestSuite struct {
 	suite.Suite
+	runtime *test.Runtime
+	userId  uint
 }
 
 func (suite *UserMeTestSuite) SetupSuite() {
-	test.RdbmsMigration.Run()
-	test.UserService.Register()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
+	createdUser := suite.runtime.Users.Register(fake.User())
+	suite.userId = createdUser.Id
 }
 
 func (suite *UserMeTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantRoleToUser(test.UserService.User.Id, "admin")
+	suite.runtime.Permissions.AddPermissions()
+	suite.runtime.Permissions.GrantRoleToUser(suite.userId, "admin")
 
-	accessToken := test.UserService.Login()
+	accessToken := suite.runtime.UserAPI.CreateAccessToken()
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.Response{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -39,7 +43,7 @@ func (suite *UserMeTestSuite) Test() {
 	}
 
 	data := &user.UserData{}
-	decoder := service.Registry.Get("mapstructureDecoder").(func(any, any) error)
+	decoder := deps.MapstructureDecoder()
 	if err := decoder(respBody.Data, data); err != nil {
 		panic(err)
 	}
@@ -62,9 +66,9 @@ func (suite *UserMeTestSuite) Test() {
 
 func (suite *UserMeTestSuite) TestWrongAccessToken() {
 	req := httptest.NewRequest("GET", "/api/user/me", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), &respBody); err != nil {
@@ -77,7 +81,7 @@ func (suite *UserMeTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *UserMeTestSuite) TearDownSuite() {
-	test.RdbmsMigration.Reset()
+	suite.runtime.Close()
 }
 
 func TestUserMeTestSuite(t *testing.T) {

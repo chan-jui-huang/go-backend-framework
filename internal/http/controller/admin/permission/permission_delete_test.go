@@ -14,18 +14,20 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
 	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 )
 
 type PermissionDeleteTestSuite struct {
 	suite.Suite
+	runtime    *test.Runtime
 	permission *model.Permission
 }
 
 func (suite *PermissionDeleteTestSuite) SetupTest() {
-	test.RdbmsMigration.Run()
-	test.AdminService.Register()
+	suite.runtime = test.NewRdbmsRuntime(suite.T())
+	suite.runtime.Users.Register(fake.Admin())
 
 	permissionModel := &model.Permission{Name: "permission1"}
 	casbinRules := []gormadapter.CasbinRule{
@@ -61,9 +63,7 @@ func (suite *PermissionDeleteTestSuite) SetupTest() {
 }
 
 func (suite *PermissionDeleteTestSuite) Test() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBody := permission.PermissionDeleteRequest{
 		Ids: []uint{suite.permission.Id},
@@ -74,10 +74,10 @@ func (suite *PermissionDeleteTestSuite) Test() {
 	}
 
 	req := httptest.NewRequest("DELETE", "/api/admin/permission", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	p, err := pkgPermission.GetCasbinRules(database.NewTx(), "ptype = ? AND v0 = ?", "p", suite.permission.Name)
 	if err != nil {
@@ -95,12 +95,11 @@ func (suite *PermissionDeleteTestSuite) Test() {
 }
 
 func (suite *PermissionDeleteTestSuite) TestWrongAccessToken() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("DELETE", "/api/admin/permission", nil)
-	test.AddCsrfToken(req)
+	suite.runtime.HTTP.AddCsrfToken(req)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -113,16 +112,14 @@ func (suite *PermissionDeleteTestSuite) TestWrongAccessToken() {
 }
 
 func (suite *PermissionDeleteTestSuite) TestRequestValidationFailed() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAuthorizedAccessToken()
 
 	reqBodyBytes := []byte(`{}`)
 	req := httptest.NewRequest("DELETE", "/api/admin/permission", bytes.NewReader(reqBodyBytes))
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -138,11 +135,10 @@ func (suite *PermissionDeleteTestSuite) TestRequestValidationFailed() {
 }
 
 func (suite *PermissionDeleteTestSuite) TestCsrfMismatch() {
-	test.PermissionService.AddPermissions()
-	test.PermissionService.GrantAdminToAdminUser()
+	suite.runtime.AdminAPI.GrantAdminAccess()
 	req := httptest.NewRequest("DELETE", "/api/admin/permission", nil)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -155,12 +151,12 @@ func (suite *PermissionDeleteTestSuite) TestCsrfMismatch() {
 }
 
 func (suite *PermissionDeleteTestSuite) TestAuthorizationFailed() {
-	accessToken := test.AdminService.Login()
+	accessToken := suite.runtime.AdminAPI.CreateAccessToken()
 	req := httptest.NewRequest("DELETE", "/api/admin/permission", nil)
-	test.AddCsrfToken(req)
-	test.AddBearerToken(req, accessToken)
+	suite.runtime.HTTP.AddCsrfToken(req)
+	suite.runtime.HTTP.AddBearerToken(req, accessToken)
 	resp := httptest.NewRecorder()
-	test.HttpHandler.ServeHTTP(resp, req)
+	suite.runtime.HTTP.ServeHTTP(resp, req)
 
 	respBody := &response.ErrorResponse{}
 	if err := json.Unmarshal(resp.Body.Bytes(), respBody); err != nil {
@@ -173,7 +169,7 @@ func (suite *PermissionDeleteTestSuite) TestAuthorizationFailed() {
 }
 
 func (suite *PermissionDeleteTestSuite) TearDownTest() {
-	test.RdbmsMigration.Reset()
+	suite.runtime.Close()
 }
 
 func TestPermissionDeleteTestSuite(t *testing.T) {

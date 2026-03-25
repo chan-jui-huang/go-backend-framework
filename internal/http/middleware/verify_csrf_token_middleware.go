@@ -3,32 +3,19 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/config"
+	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-package/pkg/booter/service"
-	"github.com/chan-jui-huang/go-backend-package/pkg/random"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/random"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
-type CsrfConfig struct {
-	Cookie struct {
-		Name     string
-		Path     string
-		Domain   string
-		MaxAge   int
-		Secure   bool
-		HttpOnly bool
-		SameSite http.SameSite
-	}
-	Header string
-}
-
-func VerifyCsrfToken(config CsrfConfig) gin.HandlerFunc {
+func VerifyCsrfToken(config *config.CsrfConfig) gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/skip-path": true,
 	}
-	logger := service.Registry.Get("logger").(*zap.Logger)
+	logger := deps.Logger()
 
 	return func(c *gin.Context) {
 		setCsrfToken(c, config)
@@ -45,7 +32,7 @@ func VerifyCsrfToken(config CsrfConfig) gin.HandlerFunc {
 	}
 }
 
-func setCsrfToken(c *gin.Context, config CsrfConfig) {
+func setCsrfToken(c *gin.Context, config *config.CsrfConfig) {
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     config.Cookie.Name,
 		Value:    random.RandomString(20),
