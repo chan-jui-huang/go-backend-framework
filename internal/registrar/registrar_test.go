@@ -43,7 +43,6 @@ func (suite *RegistrarTestSuite) TestDependenciesRegistered() {
 	suite.NotNil(currentService.AccessLoggerValue)
 	suite.NotNil(currentService.FormDecoder)
 	suite.NotNil(currentService.Modifier)
-	suite.NotNil(currentService.MapstructureDecoder)
 }
 
 func (suite *RegistrarTestSuite) TestValidatorTagNameFunc() {

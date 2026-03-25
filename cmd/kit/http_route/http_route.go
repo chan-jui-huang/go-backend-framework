@@ -22,7 +22,6 @@ func main() {
 			appregistrar.NewLoggerConfigs,
 			appregistrar.NewLoggers,
 			appregistrar.NewCasbinEnforcer,
-			appregistrar.NewMapstructureDecoder,
 		),
 		fx.Invoke(
 			appregistrar.RegisterConfigDependencies,

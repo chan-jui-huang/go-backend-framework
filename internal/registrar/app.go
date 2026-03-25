@@ -52,18 +52,17 @@ func RegisterConfigDependencies(params RegisterConfigDependenciesParams) {
 type RegisterServiceDependenciesParams struct {
 	fx.In
 
-	Database            *gorm.DB                      `optional:"true"`
-	Redis               *redisClient.Client           `optional:"true"`
-	Authenticator       *authentication.Authenticator `optional:"true"`
-	CasbinEnforcer      *casbin.SyncedCachedEnforcer  `optional:"true"`
-	MapstructureDecoder func(any, any) error          `optional:"true"`
-	Clickhouse          driver.Conn                   `optional:"true"`
-	FormDecoder         *form.Decoder                 `optional:"true"`
-	Modifier            *mold.Transformer             `optional:"true"`
-	Logger              *zap.Logger                   `optional:"true"`
-	ConsoleLogger       *zap.Logger                   `name:"logger.console" optional:"true"`
-	FileLogger          *zap.Logger                   `name:"logger.file" optional:"true"`
-	AccessLogger        *zap.Logger                   `name:"logger.access" optional:"true"`
+	Database       *gorm.DB                      `optional:"true"`
+	Redis          *redisClient.Client           `optional:"true"`
+	Authenticator  *authentication.Authenticator `optional:"true"`
+	CasbinEnforcer *casbin.SyncedCachedEnforcer  `optional:"true"`
+	Clickhouse     driver.Conn                   `optional:"true"`
+	FormDecoder    *form.Decoder                 `optional:"true"`
+	Modifier       *mold.Transformer             `optional:"true"`
+	Logger         *zap.Logger                   `optional:"true"`
+	ConsoleLogger  *zap.Logger                   `name:"logger.console" optional:"true"`
+	FileLogger     *zap.Logger                   `name:"logger.file" optional:"true"`
+	AccessLogger   *zap.Logger                   `name:"logger.access" optional:"true"`
 }
 
 func RegisterServiceDependencies(params RegisterServiceDependenciesParams) {
@@ -76,7 +75,6 @@ func RegisterServiceDependencies(params RegisterServiceDependenciesParams) {
 		RedisValue:          params.Redis,
 		AuthenticatorValue:  params.Authenticator,
 		CasbinEnforcerValue: params.CasbinEnforcer,
-		MapstructureDecoder: params.MapstructureDecoder,
 		ClickhouseValue:     params.Clickhouse,
 		FormDecoder:         params.FormDecoder,
 		Modifier:            params.Modifier,

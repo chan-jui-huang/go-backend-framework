@@ -43,7 +43,6 @@ func main() {
 			registrar.NewLoggerConfigs,
 			registrar.NewLoggers,
 			registrar.NewCasbinEnforcer,
-			registrar.NewMapstructureDecoder,
 			form.NewDecoder,
 			modifiers.New,
 		),

@@ -68,7 +68,6 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 			registrar.NewLoggerConfigs,
 			registrar.NewLoggers,
 			registrar.NewCasbinEnforcer,
-			registrar.NewMapstructureDecoder,
 			form.NewDecoder,
 			modifiers.New,
 		),
