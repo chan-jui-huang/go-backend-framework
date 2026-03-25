@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/config"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/config"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"golang.org/x/time/rate"

@@ -3,8 +3,8 @@ package route
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route/admin"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route/user"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/admin"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/user"
 	"github.com/gin-gonic/gin"
 )
 

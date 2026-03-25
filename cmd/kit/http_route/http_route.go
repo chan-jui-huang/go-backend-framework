@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/route"
-	appregistrar "github.com/chan-jui-huang/go-backend-framework/v2/internal/registrar"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
+	appregistrar "github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
 	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"

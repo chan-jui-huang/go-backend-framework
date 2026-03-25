@@ -3,7 +3,7 @@ package db
 import (
 	"path"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/pressly/goose/v3"
 )
 

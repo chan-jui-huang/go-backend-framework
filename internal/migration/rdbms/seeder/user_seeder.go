@@ -3,7 +3,7 @@ package seeder
 import (
 	"fmt"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/random"
 	"gorm.io/gorm"

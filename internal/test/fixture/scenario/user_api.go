@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
-	domainfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/domain"
-	httpfixture "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fixture/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
+	domainfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
+	httpfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/http"
 	"github.com/mitchellh/mapstructure"
 )
 

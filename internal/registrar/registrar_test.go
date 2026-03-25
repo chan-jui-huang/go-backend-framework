@@ -3,8 +3,8 @@ package registrar_test
 import (
 	"testing"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/suite"

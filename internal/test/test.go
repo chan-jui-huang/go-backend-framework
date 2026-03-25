@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	testruntime "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/runtime"
+	testruntime "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/runtime"
 )
 
 type Runtime = testruntime.Runtime

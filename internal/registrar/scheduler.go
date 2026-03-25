@@ -3,7 +3,7 @@ package registrar
 import (
 	"context"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/scheduler"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/scheduler"
 )
 
 func SchedulerOnStart(context.Context) error {

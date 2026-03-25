@@ -475,9 +475,9 @@ import (
     "net/http/httptest"
     "testing"
 
-    "github.com/chan-jui-huang/go-backend-framework/v2/internal/http/controller/user"
-    "github.com/chan-jui-huang/go-backend-framework/v2/internal/test"
-    "github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
+    "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
+    "github.com/chan-jui-huang/go-backend-framework/v3/internal/test"
+    "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
     "github.com/stretchr/testify/suite"
 )
 

@@ -3,10 +3,10 @@ package user
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/database"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/user"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"

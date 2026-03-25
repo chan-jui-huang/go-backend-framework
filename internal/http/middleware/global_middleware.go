@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/gin-gonic/gin"
 )
 

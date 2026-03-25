@@ -1,9 +1,9 @@
 package domain
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/model"
-	pkgUser "github.com/chan-jui-huang/go-backend-framework/v2/internal/pkg/user"
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/test/fake"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
+	pkgUser "github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/user"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/argon2"
 	"gorm.io/gorm"
 )

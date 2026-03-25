@@ -3,7 +3,7 @@ package deps
 import (
 	"sync"
 
-	"github.com/chan-jui-huang/go-backend-framework/v2/internal/config"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/config"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/clickhouse"
