@@ -99,7 +99,7 @@ func main() {
 ## Development Workflow
 When adding a new API endpoint:
 1. Extend or create handler files under `internal/http/controller/<area>` (for example, `internal/http/controller/user/user_register.go`). Follow the existing `<feature>_<action>.go` naming and add matching `*_test.go` coverage.
-2. **REQUIRED**: Implement or extend business logic in `internal/pkg/<domain>` (e.g., `internal/pkg/user`, `internal/pkg/permission`) BEFORE writing controller code. Controllers MUST delegate to `internal/pkg/` and never contain business logic directly. Keep helpers reusable and include unit tests where practical.
+2. **REQUIRED**: Implement or extend business logic in `internal/pkg/<domain>` (e.g., `internal/pkg/user`, `internal/pkg/permission`) BEFORE writing controller code by default. Controllers MUST delegate to `internal/pkg/` for shared or reusable business logic. A controller MAY keep single-interface-only flow locally when the Single-Interface Scope/KISS override applies. Keep helpers reusable and include unit tests where practical.
 3. Wire routes in the corresponding router under `internal/http/route/<area>/api_route.go`, ensuring it implements `route.Router` and guards handlers with middleware as needed.
 4. If you introduce a brand-new router, register it in `internal/http/route/api_route.go` by appending it to the `routers` slice so it participates in `AttachRoutes`.
 5. For admin/protected capabilities, synchronise seeds between runtime and tests: update `cmd/kit/permission_seeder/permission_seeder.go` and mirror the same permission preset in `internal/test/fake/permission.go`; adjust `internal/test/fixture/domain/permission.go` or `internal/test/fixture/scenario/admin_api.go` when the admin fixture flow changes.
