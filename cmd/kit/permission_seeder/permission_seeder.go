@@ -9,6 +9,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"gorm.io/gorm"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -136,6 +137,9 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 
 func main() {
 	fxApp := fx.New(
+		fx.WithLogger(func() fxevent.Logger {
+			return fxevent.NopLogger
+		}),
 		fx.Supply(booter.NewDefaultConfig()),
 		fx.Provide(
 			appregistrar.NewConfigLoader,

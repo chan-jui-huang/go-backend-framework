@@ -1,7 +1,8 @@
 .vscode
 bin
 .env
-.env.dev
+.env.test
+.env.staging
 .env.production
 .air.toml
 .claude/settings.local.json

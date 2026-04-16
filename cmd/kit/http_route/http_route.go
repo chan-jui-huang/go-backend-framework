@@ -8,10 +8,14 @@ import (
 	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 )
 
 func main() {
 	fxApp := fx.New(
+		fx.WithLogger(func() fxevent.Logger {
+			return fxevent.NopLogger
+		}),
 		fx.Supply(booter.NewDefaultConfig()),
 		fx.Provide(
 			appregistrar.NewConfigLoader,
