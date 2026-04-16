@@ -20,6 +20,7 @@ import (
 	"github.com/go-playground/mold/v4/modifiers"
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"go.uber.org/fx/fxtest"
 )
 
@@ -51,6 +52,9 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	app := fxtest.New(
 		tb,
 		fx.StopTimeout(60*time.Second),
+		fx.WithLogger(func() fxevent.Logger {
+			return fxevent.NopLogger
+		}),
 		fx.Supply(booterConfig),
 		fx.Provide(
 			registrar.NewConfigLoader,

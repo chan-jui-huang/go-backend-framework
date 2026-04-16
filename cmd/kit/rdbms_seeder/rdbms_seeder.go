@@ -8,6 +8,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/migration/rdbms/seeder"
 	appregistrar "github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
@@ -16,6 +17,9 @@ import (
 
 func main() {
 	fxApp := fx.New(
+		fx.WithLogger(func() fxevent.Logger {
+			return fxevent.NopLogger
+		}),
 		fx.Supply(booter.NewDefaultConfig()),
 		fx.Provide(
 			appregistrar.NewConfigLoader,

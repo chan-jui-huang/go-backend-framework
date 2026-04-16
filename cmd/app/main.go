@@ -10,6 +10,7 @@ import (
 	"github.com/go-playground/mold/v4/modifiers"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 )
 
 // @title Example API
@@ -21,6 +22,9 @@ func main() {
 
 	fx.New(
 		fx.StopTimeout(60*time.Second),
+		fx.WithLogger(func() fxevent.Logger {
+			return fxevent.NopLogger
+		}),
 		fx.Supply(booterConfig),
 		fx.Provide(
 			registrar.NewConfigLoader,
