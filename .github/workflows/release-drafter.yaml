@@ -1,13 +1,9 @@
 name: Release Drafter
 
 on:
-  # pull_request event is required only for autolabeler
-  pull_request:
-    # Only following types are handled by the action, but one can default to all as well
-    types: [closed]
-  # pull_request_target event is required for autolabeler to support PRs from forks
-  # pull_request_target:
-  #   types: [opened, reopened, synchronize]
+  # pull_request_target supports autolabeler for both same-repo and fork PRs
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed]
 
 permissions:
   contents: read
@@ -21,7 +17,6 @@ jobs:
       # otherwise, read permission is required at least
       pull-requests: write
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
     steps:
       # (Optional) GitHub Enterprise requires GHE_HOST variable set
       #- name: Set GHE_HOST

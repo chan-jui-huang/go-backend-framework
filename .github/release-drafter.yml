@@ -17,7 +17,38 @@ categories:
       - 'perf'
       - 'revert'
       - 'style'
-      - 'doc'
+      - 'docs'
+autolabeler:
+  - label: 'feat'
+    title:
+      - '/^feat(\(.+\))?:/i'
+  - label: 'fix'
+    title:
+      - '/^fix(\(.+\))?:/i'
+  - label: 'hotfix'
+    title:
+      - '/^hotfix(\(.+\))?:/i'
+  - label: 'chore'
+    title:
+      - '/^chore(\(.+\))?:/i'
+  - label: 'test'
+    title:
+      - '/^test(\(.+\))?:/i'
+  - label: 'refactor'
+    title:
+      - '/^refactor(\(.+\))?:/i'
+  - label: 'perf'
+    title:
+      - '/^perf(\(.+\))?:/i'
+  - label: 'revert'
+    title:
+      - '/^revert(\(.+\))?:/i'
+  - label: 'style'
+    title:
+      - '/^style(\(.+\))?:/i'
+  - label: 'docs'
+    title:
+      - '/^docs?(\(.+\))?:/i'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
 version-resolver:
