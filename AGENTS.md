@@ -96,14 +96,11 @@ When adding or modifying API endpoints, invoke and follow `$create-api-endpoint`
 ## Testing Guidelines
 - Test framework: standard `testing`; `testify` is available for assertions.
 - Location: place `*_test.go` files alongside the code they cover; prefer table-driven tests or testify suites.
-- Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.test` to provide DSNs and secrets.
+- Migrations: run required migrations first by following `$make-migration`. Tests expect `.env.test` to provide DSNs and secrets.
 - Coverage: exercise both success and failure paths. Document skipped integration tests in PR descriptions.
 
 ## Migrations
-- Use Make targets with environment loaded from `.env`: `make mysql-migration args="up"`, `make pgsql-migration args="up"`, `make sqlite-migration args="up"`, or `make clickhouse-migration args="up"`.
-- Ensure relevant `DB_*` variables are set for the target database.
-- Keep migrations idempotent and reversible; document non-trivial data movements.
-- Migration filenames MUST use a timestamp reflecting the actual creation time; generate a fresh `YYYYMMDDhhmmss` prefix when the file is added, and ensure each migration file has a unique timestamp prefix (do not reuse the same `YYYYMMDDhhmmss` across multiple migration files). When creating paired migrations (e.g., prod/test), keep the timestamp identical across the pair while still unique per table/change.
+- Follow `$make-migration` for any migration-related task.
 
 ## Security & Configuration
 - Never commit secrets. Place credentials in `storage/...` as described in the README.
