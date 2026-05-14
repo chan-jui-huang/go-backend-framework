@@ -21,7 +21,7 @@ func Authenticate() gin.HandlerFunc {
 		authorizationHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authorizationHeader, "Bearer") {
 			errResp := response.NewErrorResponse(response.Unauthorized, errors.New("jwt authentication failed"), nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c.Request)...)
+			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
@@ -30,7 +30,7 @@ func Authenticate() gin.HandlerFunc {
 		subject, err := verifyAccessToken(authenticator, accessTokenString)
 		if err != nil {
 			errResp := response.NewErrorResponse(response.Unauthorized, err, nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c.Request)...)
+			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
@@ -38,7 +38,7 @@ func Authenticate() gin.HandlerFunc {
 		values, err := url.ParseQuery(subject)
 		if err != nil {
 			errResp := response.NewErrorResponse(response.Unauthorized, errors.WithStack(err), nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c.Request)...)
+			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
@@ -47,7 +47,7 @@ func Authenticate() gin.HandlerFunc {
 		userQuery := &user.Query{}
 		if err := decoder.Decode(userQuery, values); err != nil {
 			errResp := response.NewErrorResponse(response.Unauthorized, errors.WithStack(err), nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c.Request)...)
+			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}

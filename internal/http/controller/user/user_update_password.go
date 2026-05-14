@@ -33,9 +33,9 @@ type UserUpdatePasswordRequest struct {
 func UpdatePassword(c *gin.Context) {
 	logger := deps.Logger()
 	reqBody := new(UserUpdatePasswordRequest)
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -43,14 +43,14 @@ func UpdatePassword(c *gin.Context) {
 	u, err := user.Get(database.NewTx(), "id = ?", c.GetUint("user_id"))
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
 	if !argon2.VerifyArgon2IdHash(reqBody.CurrentPassword, u.Password) {
 		errResp := response.NewErrorResponse(response.PasswordIsWrong, errors.New(response.PasswordIsWrong), nil)
-		logger.Warn(response.PasswordIsWrong, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.PasswordIsWrong, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -59,7 +59,7 @@ func UpdatePassword(c *gin.Context) {
 	values := structs.Map(reqBody)
 	if _, err := user.Update(database.NewTx(), c.GetUint("user_id"), values); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

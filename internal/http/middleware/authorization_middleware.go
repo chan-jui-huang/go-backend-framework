@@ -17,14 +17,14 @@ func Authorize() gin.HandlerFunc {
 		ok, err := enforcer.Enforce(strconv.FormatUint(uint64(userId), 10), c.Request.URL.Path, c.Request.Method)
 		if err != nil {
 			errResp := response.NewErrorResponse(response.Forbidden, errors.WithStack(err), nil)
-			logger.Warn(response.Forbidden, errResp.MakeLogFields(c.Request)...)
+			logger.Warn(response.Forbidden, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
 
 		if !ok {
 			errResp := response.NewErrorResponse(response.Forbidden, errors.New("casbin authorization failed"), nil)
-			logger.Warn(response.Forbidden, errResp.MakeLogFields(c.Request)...)
+			logger.Warn(response.Forbidden, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}

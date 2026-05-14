@@ -10,6 +10,7 @@ import (
 
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/stacktrace"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -69,16 +70,27 @@ func (er *ErrorResponse) StatusCode() int {
 	return int(code)
 }
 
-func (er *ErrorResponse) MakeLogFields(req *http.Request, fields ...zap.Field) []zap.Field {
-	requestBody, err := io.ReadAll(req.Body)
-	if err != nil {
-		logger := deps.Logger()
-		logger.Error(err.Error())
-		requestBody = nil
+func (er *ErrorResponse) MakeLogFields(c *gin.Context, fields ...zap.Field) []zap.Field {
+	req := c.Request
+
+	var requestBody []byte
+	if bodyValue, ok := c.Get(gin.BodyBytesKey); ok {
+		if bodyBytes, ok := bodyValue.([]byte); ok {
+			requestBody = bodyBytes
+		}
+	} else if req.Body != nil {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			logger := deps.Logger()
+			logger.Error(err.Error())
+		} else {
+			requestBody = body
+		}
 	}
+
 	if requestBody != nil && json.Valid(requestBody) {
 		buffer := bytes.NewBuffer(make([]byte, 0, len(requestBody)))
-		err = json.Compact(buffer, requestBody)
+		err := json.Compact(buffer, requestBody)
 		if err != nil {
 			logger := deps.Logger()
 			logger.Error(err.Error())

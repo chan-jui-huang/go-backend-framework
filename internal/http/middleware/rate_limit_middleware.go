@@ -25,7 +25,7 @@ func RateLimit(config config.RateLimitConfig) gin.HandlerFunc {
 			return
 		}
 		errResp := response.NewErrorResponse(response.ServiceUnavailable, errors.New("token bucket is empty"), nil)
-		logger.Error(response.ServiceUnavailable, errResp.MakeLogFields(c.Request)...)
+		logger.Error(response.ServiceUnavailable, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 	}
 }

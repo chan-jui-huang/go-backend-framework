@@ -33,9 +33,9 @@ type UserLoginRequest struct {
 func Login(c *gin.Context) {
 	logger := deps.Logger()
 	reqBody := new(UserLoginRequest)
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -43,13 +43,13 @@ func Login(c *gin.Context) {
 	u, err := user.Get(database.NewTx(), "email = ?", reqBody.Email)
 	if err != nil {
 		errResp := response.NewErrorResponse(response.EmailIsWrong, err, nil)
-		logger.Warn(response.EmailIsWrong, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.EmailIsWrong, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 	if !argon2.VerifyArgon2IdHash(reqBody.Password, u.Password) {
 		errResp := response.NewErrorResponse(response.PasswordIsWrong, errors.New(response.PasswordIsWrong), nil)
-		logger.Warn(response.PasswordIsWrong, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.PasswordIsWrong, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -61,7 +61,7 @@ func Login(c *gin.Context) {
 	}
 	if err := encoder.Encode(userQuery, values); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -70,7 +70,7 @@ func Login(c *gin.Context) {
 	accessToken, err := authenticator.IssueAccessToken(values.Encode())
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
