@@ -33,7 +33,7 @@ func Recover() gin.HandlerFunc {
 			}
 
 			errResp := response.NewErrorResponse(response.InternalServerError, errors.New(fmt.Sprintf("%v", err)), nil)
-			logger.Error(response.InternalServerError, errResp.MakeLogFields(c.Request)...)
+			logger.Error(response.InternalServerError, errResp.MakeLogFields(c)...)
 			if isBrokenPipe {
 				c.Abort()
 			} else {

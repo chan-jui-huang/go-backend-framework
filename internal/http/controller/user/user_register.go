@@ -33,9 +33,9 @@ type UserRegisterRequest struct {
 func Register(c *gin.Context) {
 	logger := deps.Logger()
 	reqBody := new(UserRegisterRequest)
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -47,7 +47,7 @@ func Register(c *gin.Context) {
 	}
 	if err := user.Create(database.NewTx(), u); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -56,7 +56,7 @@ func Register(c *gin.Context) {
 	accessToken, err := authenticator.IssueAccessToken(fmt.Sprintf("%v", u.Id))
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

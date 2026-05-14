@@ -41,9 +41,9 @@ type RoleUpdateRequest struct {
 func UpdateRole(c *gin.Context) {
 	reqBody := new(RoleUpdateRequest)
 	logger := deps.Logger()
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -116,7 +116,7 @@ func UpdateRole(c *gin.Context) {
 	})
 	if err != nil && !errors.Is(err, sql.ErrTxDone) {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -124,7 +124,7 @@ func UpdateRole(c *gin.Context) {
 	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -132,7 +132,7 @@ func UpdateRole(c *gin.Context) {
 	role, err := permission.GetRole(database.NewTx("Permissions"), "id = ?", c.Param("id"))
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

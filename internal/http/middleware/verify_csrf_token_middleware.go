@@ -27,7 +27,7 @@ func VerifyCsrfToken(config *config.CsrfConfig) gin.HandlerFunc {
 		}
 
 		errResp := response.NewErrorResponse(response.Forbidden, errors.New("csrf token mismatch"), nil)
-		logger.Warn(response.Forbidden, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.Forbidden, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 	}
 }

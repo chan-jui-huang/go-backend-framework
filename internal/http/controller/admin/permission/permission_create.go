@@ -42,9 +42,9 @@ type PermissionCreateData struct {
 func Create(c *gin.Context) {
 	reqBody := new(PermissionCreateRequest)
 	logger := deps.Logger()
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -71,7 +71,7 @@ func Create(c *gin.Context) {
 	})
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -79,7 +79,7 @@ func Create(c *gin.Context) {
 	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

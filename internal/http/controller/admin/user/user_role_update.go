@@ -37,9 +37,9 @@ type UserRoleUpdateRequest struct {
 func UpdateUserRole(c *gin.Context) {
 	reqBody := new(UserRoleUpdateRequest)
 	logger := deps.Logger()
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -47,7 +47,7 @@ func UpdateUserRole(c *gin.Context) {
 	roles, err := permission.GetRoles(database.NewTx("Permissions"), "id IN ?", reqBody.RoleIds)
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -58,7 +58,7 @@ func UpdateUserRole(c *gin.Context) {
 	}
 	if len(permissions) != len(lo.Union(permissions)) {
 		errResp := response.NewErrorResponse(response.PermissionIsRepeat, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -101,7 +101,7 @@ func UpdateUserRole(c *gin.Context) {
 	})
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -109,7 +109,7 @@ func UpdateUserRole(c *gin.Context) {
 	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -117,7 +117,7 @@ func UpdateUserRole(c *gin.Context) {
 	u, err := user.Get(database.NewTx("Roles"), "id = ?", reqBody.UserId)
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

@@ -31,9 +31,9 @@ type UserUpdateRequest struct {
 func Update(c *gin.Context) {
 	logger := deps.Logger()
 	reqBody := new(UserUpdateRequest)
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -42,7 +42,7 @@ func Update(c *gin.Context) {
 	_, err := user.Update(database.NewTx(), c.GetUint("user_id"), values)
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -50,7 +50,7 @@ func Update(c *gin.Context) {
 	u, err := user.Get(database.NewTx(), "id = ?", c.GetUint("user_id"))
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

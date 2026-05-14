@@ -41,7 +41,7 @@ func Search(c *gin.Context) {
 	logger := deps.Logger()
 	if err := c.ShouldBindQuery(queryString); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -66,7 +66,7 @@ func Search(c *gin.Context) {
 	httpApis := []model.HttpApi{}
 	if err := paginator.Execute(&httpApis).Error; err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

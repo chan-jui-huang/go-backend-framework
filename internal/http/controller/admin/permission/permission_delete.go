@@ -34,9 +34,9 @@ type PermissionDeleteRequest struct {
 func Delete(c *gin.Context) {
 	reqBody := new(PermissionDeleteRequest)
 	logger := deps.Logger()
-	if err := c.ShouldBindJSON(reqBody); err != nil {
+	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
 		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -44,7 +44,7 @@ func Delete(c *gin.Context) {
 	permissions, err := permission.GetMany(database.NewTx(), "id IN ?", reqBody.Ids)
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -69,7 +69,7 @@ func Delete(c *gin.Context) {
 	})
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -77,7 +77,7 @@ func Delete(c *gin.Context) {
 	enforcer := deps.CasbinEnforcer()
 	if err := enforcer.LoadPolicy(); err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

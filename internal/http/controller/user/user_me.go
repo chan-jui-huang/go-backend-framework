@@ -24,7 +24,7 @@ func Me(c *gin.Context) {
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
 		logger := deps.Logger()
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

@@ -31,7 +31,7 @@ func Get(c *gin.Context) {
 	logger := deps.Logger()
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
@@ -39,7 +39,7 @@ func Get(c *gin.Context) {
 	casbinRules, err := permission.GetCasbinRules(database.NewTx(), "ptype = ? AND v0 = ?", "p", p.Name)
 	if err != nil {
 		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
