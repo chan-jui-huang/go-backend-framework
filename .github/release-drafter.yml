@@ -17,7 +17,6 @@ categories:
       - 'perf'
       - 'revert'
       - 'style'
-      - 'doc'
       - 'docs'
 autolabeler:
   - label: 'feat'
