@@ -20,35 +20,35 @@ categories:
       - 'docs'
 autolabeler:
   - label: 'feat'
-    title:
-      - '/^feat(\(.+\))?:/i'
+    branch:
+      - '/^feat\/.+$/i'
   - label: 'fix'
-    title:
-      - '/^fix(\(.+\))?:/i'
+    branch:
+      - '/^fix\/.+$/i'
   - label: 'hotfix'
-    title:
-      - '/^hotfix(\(.+\))?:/i'
+    branch:
+      - '/^hotfix\/.+$/i'
   - label: 'chore'
-    title:
-      - '/^chore(\(.+\))?:/i'
+    branch:
+      - '/^chore\/.+$/i'
   - label: 'test'
-    title:
-      - '/^test(\(.+\))?:/i'
+    branch:
+      - '/^test\/.+$/i'
   - label: 'refactor'
-    title:
-      - '/^refactor(\(.+\))?:/i'
+    branch:
+      - '/^refactor\/.+$/i'
   - label: 'perf'
-    title:
-      - '/^perf(\(.+\))?:/i'
+    branch:
+      - '/^perf\/.+$/i'
   - label: 'revert'
-    title:
-      - '/^revert(\(.+\))?:/i'
+    branch:
+      - '/^revert\/.+$/i'
   - label: 'style'
-    title:
-      - '/^style(\(.+\))?:/i'
+    branch:
+      - '/^style\/.+$/i'
   - label: 'docs'
-    title:
-      - '/^docs?(\(.+\))?:/i'
+    branch:
+      - '/^docs?\/.+$/i'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
 version-resolver:
