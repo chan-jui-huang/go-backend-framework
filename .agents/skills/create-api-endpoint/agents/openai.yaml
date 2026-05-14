@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create API Endpoint"
+  short_description: "Build repo-standard API endpoints"
+  default_prompt: "Use this skill to add or modify an API endpoint in go-backend-framework following the repository workflow."

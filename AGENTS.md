@@ -55,10 +55,9 @@ This document guides AI agents and contributors working in this repository. It d
 - Keep package names lowercase with no underscores; prefer descriptive names (`internal/http/controller/user`).
 - Use natural exported identifiers (e.g., `UserLoginRequest`). For camelCase names containing "id", spell it as `Id` (e.g., `userId`).
 - Avoid import aliases unless required for conflict resolution or clarity; rely on the default import name whenever possible.
-- Reuse established helper patterns (e.g., response builders in `internal/http/response`) rather than handcrafting JSON payloads.
+- Reuse established helper patterns rather than handcrafting project-standard behavior.
 - Respect the `jsoniter` build tag where the Makefile enables it.
 - Follow directory-local conventions and keep reusable code in `internal/pkg/`; leave HTTP wiring and other application layers under `internal/`.
-- API route paths must use kebab case (e.g., `pet-store`).
 - Struct names: singular, PascalCase (e.g., `User`, `SchedulerJob`); use another casing only when a schema or user directive explicitly requires it.
 - Table tags: let GORM infer plural table names; only add a `TableName()` override when migrations already created a non-standard name (e.g., `AuditLog` mapping to `"audit_logs"`).
 - Slice fields for relations: use plural names for collections (e.g., `Roles []Role`, `Permissions []Permission`).
@@ -68,9 +67,6 @@ This document guides AI agents and contributors working in this repository. It d
 - Packages: lower-case with no underscores. Files use `snake_case.go` only when it clarifies multiword names already used in the codebase.
 - If a directory name includes underscores for readability (e.g., `user_activity`), keep the Go package name lower-case without underscores and import with an explicit alias only when needed.
 - Follow the naming/style conventions of files in the same directory before introducing new patterns.
-- Helper/query patterns: when adding or modifying helpers, match the existing query shape in that file/package (ordering, preload use, error wrapping). Keep helpers minimal—do not add joins/preloads or extra queries unless the file already does or the requirement demands it.
-- Swagger `// @param` comments must keep the description placeholder as `" "` (do not insert real tokens like `"id"`).
-- Keep Swagger annotations aligned with actual runtime responses; if a handler logs an error instead of returning it, remove the unused error entry from Swagger.
 - When a foreign key guarantees a required parent (e.g., `User` on `UserPermission`), do not add nil-guards before using the preloaded relation.
 
 ### Example: indentation must use tabs
@@ -90,34 +86,18 @@ func main() {
 }
 ```
 
-## Error Responses
-- Define canonical error messages and codes exclusively in `internal/http/response/error_message.go`.
-- Message constants describe user-facing text. Update `MessageToCode` with a unique `<status>-<sequence>` string (e.g., `400-001`).
-- Organize the map by HTTP status headers (`// 400`, `// 401`, etc.) so related errors stay grouped.
-- Ensure handlers return responses whose status aligns with the declared message and add corresponding tests when introducing new errors.
+## API Endpoint Workflow
+When adding or modifying API endpoints, invoke and follow `$create-api-endpoint` from `.agents/skills/create-api-endpoint/SKILL.md`. That skill is the source of truth for controller files, `internal/pkg` business logic, routes, permissions, Swagger contracts, canonical HTTP errors, logging, and controller tests.
 
-## Development Workflow
-When adding a new API endpoint:
-1. Extend or create handler files under `internal/http/controller/<area>` (for example, `internal/http/controller/user/user_register.go`). Follow the existing `<feature>_<action>.go` naming and add matching `*_test.go` coverage.
-2. **REQUIRED**: Implement or extend business logic in `internal/pkg/<domain>` (e.g., `internal/pkg/user`, `internal/pkg/permission`) BEFORE writing controller code by default. Controllers MUST delegate to `internal/pkg/` for shared or reusable business logic. A controller MAY keep single-interface-only flow locally when the Single-Interface Scope/KISS override applies. Keep helpers reusable and include unit tests where practical.
-3. Wire routes in the corresponding router under `internal/http/route/<area>/api_route.go`, ensuring it implements `route.Router` and guards handlers with middleware as needed.
-4. If you introduce a brand-new router, register it in `internal/http/route/api_route.go` by appending it to the `routers` slice so it participates in `AttachRoutes`.
-5. For admin/protected capabilities, synchronise seeds between runtime and tests: update `cmd/kit/permission_seeder/permission_seeder.go` and mirror the same permission preset in `internal/test/fake/permission.go`; adjust `internal/test/fixture/domain/permission.go` or `internal/test/fixture/scenario/admin_api.go` when the admin fixture flow changes.
-6. Whenever you introduce a new mock service (gomock or hand-written), also register an empty instance in `internal/test/runtime/runtime.go:emptyMockedServices()` so the test harness has placeholders for injected services.
-
-General guidance:
+## Development Guidelines
 - Keep changes minimal and localized; avoid unrelated refactors.
 - Favor composition over duplication; reuse helpers under `internal/pkg/` and existing shared utilities.
-- Update Swagger comments whenever API shapes change, then run `make swagger`.
-- Wrap work in a transaction only when multiple insert/update/delete statements need to succeed together.
 
 ## Testing Guidelines
 - Test framework: standard `testing`; `testify` is available for assertions.
 - Location: place `*_test.go` files alongside the code they cover; prefer table-driven tests or testify suites.
-- Bootstrapping: leverage `internal/test/runtime` and `internal/test/fixture/*` helpers for environment loading, migrations, HTTP handlers, seeded users, and scenario setup instead of reimplementing test wiring.
-- Mock services: when introducing a new mock service, also register it in `internal/test/runtime/runtime.go` within `emptyMockedServices` so the test harness initializes it.
 - Migrations: run required migrations first (e.g., `make sqlite-migration args=up`). Tests expect `.env.test` to provide DSNs and secrets.
-- Coverage: exercise both success and failure paths. **REQUIRED**: Test all possible return values from controllers (success, validation failures, auth failures, business errors). Reference existing patterns in `internal/http/controller/**/*_test.go`. Document skipped integration tests in PR descriptions. Add controller/service tests whenever adding new endpoints.
+- Coverage: exercise both success and failure paths. Document skipped integration tests in PR descriptions.
 
 ## Migrations
 - Use Make targets with environment loaded from `.env`: `make mysql-migration args="up"`, `make pgsql-migration args="up"`, `make sqlite-migration args="up"`, or `make clickhouse-migration args="up"`.
