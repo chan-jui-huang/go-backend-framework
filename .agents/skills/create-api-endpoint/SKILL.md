@@ -44,14 +44,14 @@ Create repository-standard API endpoints with thin HTTP controllers, reusable bu
    - Controllers should validate input, call `internal/pkg`, map errors to response messages, log, and format output.
 
 4. Handle requests and responses consistently:
-   - Body input: `c.ShouldBindJSON(reqBody)`.
+   - Body input: `c.ShouldBindBodyWithJSON(reqBody)` so `response.ErrorResponse.MakeLogFields(c)` can still include the request body on failures.
    - Query input: `c.ShouldBindQuery(reqQuery)`.
    - Path params: bind or parse explicitly, and return `response.RequestValidationFailed` or `response.BadRequest` according to nearby controller behavior.
    - Validation failure pattern:
 
 ```go
 errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
-logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)
+logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 return
 ```
@@ -64,7 +64,7 @@ c.JSON(http.StatusOK, response.NewResponse(data))
 
 5. Log every error response:
    - Start handlers with `logger := deps.Logger()` when the handler can return errors.
-   - Use `logger.Warn(errResp.Message, errResp.MakeLogFields(c.Request)...)` for expected request/business failures.
+   - Use `logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)` for expected request/business failures.
    - Use `logger.Error(...)` only for truly unexpected server-side failures if nearby code distinguishes them.
    - Do not log sensitive values or expose stack traces through user-facing messages.
 
