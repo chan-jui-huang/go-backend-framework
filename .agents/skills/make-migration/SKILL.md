@@ -65,6 +65,14 @@ Pass options inside `args` after the Makefile's fixed driver and DSN:
 
 The Makefile already supplies `-dir` and `-allow-missing`; do not duplicate or override them unless the task explicitly requires changing the Makefile.
 
+## Test Migration Rule
+
+- Repository test migrations under `internal/migration/rdbms/test/` are replayed from an empty database in the test harness.
+- Prefer the simplest valid schema change for the test file.
+- If the change can be expressed with `ALTER TABLE ... ADD COLUMN ...`, use that directly in the test migration.
+- Do not rebuild the whole table or write extra copy/drop/rename SQL unless the database engine or schema change genuinely requires it.
+- Mirror the production migration intent, but keep the test migration minimal when the empty-database startup makes additional compatibility SQL unnecessary.
+
 ## Example Prompts
 
 ```text
