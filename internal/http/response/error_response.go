@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/stacktrace"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -28,7 +27,23 @@ type ErrorResponse struct {
 	Context map[string]any `json:"context,omitempty"`
 }
 
-func NewErrorResponse(message string, err error, context map[string]any) *ErrorResponse {
+const debugModeKey = "response_debug_mode"
+
+func SetDebugMode(c *gin.Context, debugMode bool) {
+	c.Set(debugModeKey, debugMode)
+}
+
+func DebugMode(c *gin.Context) bool {
+	value, ok := c.Get(debugModeKey)
+	if !ok {
+		return false
+	}
+
+	debugMode, ok := value.(bool)
+	return ok && debugMode
+}
+
+func NewErrorResponse(message string, err error, context map[string]any, debugMode bool) *ErrorResponse {
 	debug := &Debug{
 		err:        err,
 		Stacktrace: stacktrace.GetStackStrace(err),
@@ -37,22 +52,17 @@ func NewErrorResponse(message string, err error, context map[string]any) *ErrorR
 		debug.Error = err.Error()
 	}
 
-	booterConfig := deps.BooterConfig()
-	if booterConfig.Debug {
-		return &ErrorResponse{
-			Message: message,
-			Code:    MessageToCode[message],
-			Debug:   debug,
-			Context: context,
-		}
-	}
-
-	return &ErrorResponse{
+	errResp := &ErrorResponse{
 		Message: message,
 		Code:    MessageToCode[message],
 		debug:   debug,
 		Context: context,
 	}
+	if debugMode {
+		errResp.Debug = debug
+	}
+
+	return errResp
 }
 
 func (er *ErrorResponse) StatusCode() int {
@@ -62,9 +72,7 @@ func (er *ErrorResponse) StatusCode() int {
 		0,
 	)
 	if err != nil {
-		logger := deps.Logger()
-		logger.Error(err.Error())
-		code = http.StatusBadRequest
+		return http.StatusBadRequest
 	}
 
 	return int(code)
@@ -74,6 +82,7 @@ func (er *ErrorResponse) MakeLogFields(c *gin.Context, fields ...zap.Field) []za
 	req := c.Request
 
 	var requestBody []byte
+	var internalFields []zap.Field
 	if bodyValue, ok := c.Get(gin.BodyBytesKey); ok {
 		if bodyBytes, ok := bodyValue.([]byte); ok {
 			requestBody = bodyBytes
@@ -81,8 +90,7 @@ func (er *ErrorResponse) MakeLogFields(c *gin.Context, fields ...zap.Field) []za
 	} else if req.Body != nil {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			logger := deps.Logger()
-			logger.Error(err.Error())
+			internalFields = append(internalFields, zap.NamedError("request_body_read_error", err))
 		} else {
 			requestBody = body
 		}
@@ -92,40 +100,40 @@ func (er *ErrorResponse) MakeLogFields(c *gin.Context, fields ...zap.Field) []za
 		buffer := bytes.NewBuffer(make([]byte, 0, len(requestBody)))
 		err := json.Compact(buffer, requestBody)
 		if err != nil {
-			logger := deps.Logger()
-			logger.Error(err.Error())
+			internalFields = append(internalFields, zap.NamedError("request_body_compact_error", err))
 			requestBody = nil
 		} else {
 			requestBody = buffer.Bytes()
 		}
 	}
 
-	var debug *Debug
-	booterConfig := deps.BooterConfig()
-	if booterConfig.Debug {
+	debug := er.debug
+	if er.Debug != nil {
 		debug = er.Debug
-	} else {
-		debug = er.debug
 	}
 
 	errorString := ""
-	if debug.err != nil {
+	if debug != nil && debug.err != nil {
 		errorString = debug.err.Error()
 	}
 
-	fields = append(
-		[]zap.Field{
-			zap.String("code", er.Code),
-			zap.String("error", errorString),
-			zap.Int("status_code", er.StatusCode()),
-			zap.String("method", req.Method),
-			zap.String("path", req.URL.Path),
-			zap.String("query_string", req.URL.Query().Encode()),
-			zap.ByteString("request_body", requestBody),
-			zap.Strings("stacktrace", debug.Stacktrace),
-		},
-		fields...,
-	)
+	stacktraceValue := []string(nil)
+	if debug != nil {
+		stacktraceValue = debug.Stacktrace
+	}
 
-	return fields
+	baseFields := []zap.Field{
+		zap.String("code", er.Code),
+		zap.String("error", errorString),
+		zap.Int("status_code", er.StatusCode()),
+		zap.String("method", req.Method),
+		zap.String("path", req.URL.Path),
+		zap.String("query_string", req.URL.Query().Encode()),
+		zap.ByteString("request_body", requestBody),
+		zap.Strings("stacktrace", stacktraceValue),
+	}
+	baseFields = append(baseFields, internalFields...)
+	baseFields = append(baseFields, fields...)
+
+	return baseFields
 }

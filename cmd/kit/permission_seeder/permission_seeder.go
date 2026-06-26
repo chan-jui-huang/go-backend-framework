@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/casbin/casbin/v3"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
@@ -13,7 +16,6 @@ import (
 	"gorm.io/gorm"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
@@ -23,13 +25,27 @@ import (
 )
 
 type permissionSeeder struct {
+	database    *gorm.DB
+	enforcer    *casbin.SyncedCachedEnforcer
 	permissions []model.Permission
 	casbinRules []gormadapter.CasbinRule
 	roles       []model.Role
 }
 
+type PermissionSeederRunner struct {
+	database *gorm.DB
+	enforcer *casbin.SyncedCachedEnforcer
+}
+
+func NewPermissionSeederRunner(database *gorm.DB, enforcer *casbin.SyncedCachedEnforcer) *PermissionSeederRunner {
+	return &PermissionSeederRunner{
+		database: database,
+		enforcer: enforcer,
+	}
+}
+
 func (ps *permissionSeeder) addRoles() {
-	currentRoles, err := permission.GetRoles(database.NewTx(), "")
+	currentRoles, err := permission.GetRoles(database.NewTx(ps.database), "")
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +67,7 @@ func (ps *permissionSeeder) addRoles() {
 	if len(appendedRoles) == 0 {
 		return
 	}
-	if err := permission.CreateRole(database.NewTx(), appendedRoles); err != nil {
+	if err := permission.CreateRole(database.NewTx(ps.database), appendedRoles); err != nil {
 		panic(err)
 	}
 }
@@ -66,12 +82,12 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 	})
 
 	var err error
-	ps.roles, err = permission.GetRoles(database.NewTx(), "name IN ?", roleNames)
+	ps.roles, err = permission.GetRoles(database.NewTx(ps.database), "name IN ?", roleNames)
 	if err != nil {
 		panic(err)
 	}
 
-	u, err := user.Get(database.NewTx(), "email = ?", "admin@admin.com")
+	u, err := user.Get(database.NewTx(ps.database), "email = ?", "admin@admin.com")
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +110,7 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 		ps.casbinRules = append(ps.casbinRules, casbinRule)
 	}
 
-	err = database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err = database.NewTx(ps.database).Transaction(func(tx *gorm.DB) error {
 		if err := permission.Create(tx, ps.permissions); err != nil {
 			return err
 		}
@@ -122,8 +138,7 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 			return err
 		}
 
-		enforcer := deps.CasbinEnforcer()
-		if err := enforcer.LoadPolicy(); err != nil {
+		if err := ps.enforcer.LoadPolicy(); err != nil {
 			return err
 		}
 
@@ -135,29 +150,7 @@ func (ps *permissionSeeder) appendPermissionsToRoles() {
 	}
 }
 
-func main() {
-	fxApp := fx.New(
-		fx.WithLogger(func() fxevent.Logger {
-			return fxevent.NopLogger
-		}),
-		fx.Supply(booter.NewDefaultConfig()),
-		fx.Provide(
-			appregistrar.NewConfigLoader,
-			appregistrar.NewDatabaseConfig,
-			appregistrar.NewDatabase,
-			appregistrar.NewLoggerConfigs,
-			appregistrar.NewLoggers,
-			appregistrar.NewCasbinEnforcer,
-		),
-		fx.Invoke(
-			appregistrar.RegisterConfigDependencies,
-			appregistrar.RegisterServiceDependencies,
-		),
-	)
-	if err := fxApp.Err(); err != nil {
-		panic(err)
-	}
-
+func (r *PermissionSeederRunner) Run(args []string) error {
 	permissions := []model.Permission{
 		{Name: "http-api-read"},
 		{Name: "permission-create"},
@@ -186,11 +179,11 @@ func main() {
 		{Ptype: "p", V0: "user-role-update", V1: "/api/admin/user-role", V2: "PUT"},
 	}
 
-	currentPermissions, err := permission.GetMany(database.NewTx(), "")
+	currentPermissions, err := permission.GetMany(database.NewTx(r.database), "")
 	if err != nil {
 		panic(err)
 	}
-	currnetCasbinRules, err := permission.GetCasbinRules(database.NewTx(), "ptype = ?", "p")
+	currnetCasbinRules, err := permission.GetCasbinRules(database.NewTx(r.database), "ptype = ?", "p")
 	if err != nil {
 		panic(err)
 	}
@@ -224,6 +217,8 @@ func main() {
 	}
 
 	permissionSeeder := &permissionSeeder{
+		database:    r.database,
+		enforcer:    r.enforcer,
 		permissions: appendedPermissions,
 		casbinRules: appendedCasbinRules,
 		roles: []model.Role{
@@ -231,7 +226,7 @@ func main() {
 		},
 	}
 
-	app := &cli.App{
+	cliApp := &cli.App{
 		Commands: []*cli.Command{
 			{
 				Name:  "add-roles",
@@ -252,7 +247,49 @@ func main() {
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	return cliApp.Run(args)
+}
+
+func main() {
+	var runner *PermissionSeederRunner
+
+	fxApp := fx.New(
+		fx.WithLogger(func() fxevent.Logger {
+			return fxevent.NopLogger
+		}),
+		fx.Supply(booter.NewDefaultConfig()),
+		fx.Provide(
+			appregistrar.NewConfigLoader,
+			appregistrar.NewDatabaseConfig,
+			appregistrar.NewDatabase,
+			appregistrar.NewLoggerConfigs,
+			appregistrar.NewLoggers,
+			appregistrar.NewCasbinEnforcer,
+			NewPermissionSeederRunner,
+		),
+		fx.Populate(&runner),
+	)
+	if err := fxApp.Err(); err != nil {
 		log.Fatal(err)
+	}
+
+	startCtx, cancelStart := context.WithTimeout(context.Background(), 15*time.Second)
+	startErr := fxApp.Start(startCtx)
+	cancelStart()
+	if startErr != nil {
+		log.Fatal(startErr)
+	}
+
+	runErr := runner.Run(os.Args)
+
+	stopCtx, cancelStop := context.WithTimeout(context.Background(), 15*time.Second)
+	stopErr := fxApp.Stop(stopCtx)
+	cancelStop()
+
+	if runErr != nil {
+		log.Fatal(runErr)
+	}
+	if stopErr != nil {
+		log.Fatal(stopErr)
 	}
 }

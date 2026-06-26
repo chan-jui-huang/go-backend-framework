@@ -2,12 +2,10 @@ package http
 
 import (
 	"net/http"
-
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 )
 
 func (handler *Handler) AddCsrfToken(req *http.Request) {
-	config := deps.CsrfConfig()
+	config := handler.csrfConfig
 	cookie := &http.Cookie{
 		Name:     config.Cookie.Name,
 		Value:    "1234567890",

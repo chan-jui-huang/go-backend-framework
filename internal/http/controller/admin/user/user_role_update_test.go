@@ -54,7 +54,7 @@ func (suite *UserRoleUpdateTestSuite) SetupTest() {
 		},
 	}
 
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(suite.runtime.Rdbms.Database()).Transaction(func(tx *gorm.DB) error {
 		if err := pkgPermission.Create(tx, permissions); err != nil {
 			return err
 		}

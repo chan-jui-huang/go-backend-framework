@@ -3,12 +3,25 @@ package user
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/user"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
+
+type GetMeHandler struct {
+	database *gorm.DB
+	logger   *zap.Logger
+}
+
+// NewGetMeHandler creates the handler for the current user API.
+func NewGetMeHandler(database *gorm.DB, logger *zap.Logger) *GetMeHandler {
+	return &GetMeHandler{
+		database: database,
+		logger:   logger,
+	}
+}
 
 // @tags user
 // @accept json
@@ -19,12 +32,15 @@ import (
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/user/me [get]
-func Me(c *gin.Context) {
-	u, err := user.Get(database.NewTx("Roles.Permissions"), "id = ?", c.GetUint("user_id"))
+func (h *GetMeHandler) Handle(c *gin.Context) {
+	u, err := user.Get(
+		h.database.Preload("Roles.Permissions"),
+		"id = ?",
+		c.GetUint("user_id"),
+	)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
-		logger := deps.Logger()
-		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
+		h.logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}

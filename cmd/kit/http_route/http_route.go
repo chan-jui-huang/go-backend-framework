@@ -1,23 +1,64 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"time"
 
+	internalhttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	appregistrar "github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
 	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 )
 
+type HttpRouteRunnerParams struct {
+	fx.In
+
+	Engine  *gin.Engine
+	Routers []route.Router `group:"routers"`
+}
+
+type HttpRouteRunner struct {
+	engine  *gin.Engine
+	routers []route.Router
+}
+
+func NewHttpRouteRunner(params HttpRouteRunnerParams) *HttpRouteRunner {
+	return &HttpRouteRunner{
+		engine:  params.Engine,
+		routers: params.Routers,
+	}
+}
+
+func (r *HttpRouteRunner) Run() error {
+	for _, router := range r.routers {
+		router.AttachRoutes()
+	}
+
+	for _, routeInfo := range r.engine.Routes() {
+		fmt.Printf("method: [%s], path: [%s], handler: [%s]\n", routeInfo.Method, routeInfo.Path, routeInfo.Handler)
+	}
+
+	return nil
+}
+
 func main() {
+	var runner *HttpRouteRunner
+
+	gin.SetMode(gin.ReleaseMode)
 	fxApp := fx.New(
 		fx.WithLogger(func() fxevent.Logger {
 			return fxevent.NopLogger
 		}),
 		fx.Supply(booter.NewDefaultConfig()),
+		route.NewModule(),
 		fx.Provide(
+			internalhttp.NewEngine,
 			appregistrar.NewConfigLoader,
 			appregistrar.NewAuthenticationConfig,
 			appregistrar.NewAuthenticator,
@@ -26,27 +67,31 @@ func main() {
 			appregistrar.NewLoggerConfigs,
 			appregistrar.NewLoggers,
 			appregistrar.NewCasbinEnforcer,
+			NewHttpRouteRunner,
 		),
-		fx.Invoke(
-			appregistrar.RegisterConfigDependencies,
-			appregistrar.RegisterServiceDependencies,
-		),
+		fx.Populate(&runner),
 	)
 	if err := fxApp.Err(); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	gin.SetMode(gin.ReleaseMode)
-	engine := gin.New()
-	routers := []route.Router{
-		route.NewApiRouter(engine),
-		route.NewSwaggerRouter(engine),
-	}
-	for _, router := range routers {
-		router.AttachRoutes()
+	startCtx, cancelStart := context.WithTimeout(context.Background(), 15*time.Second)
+	startErr := fxApp.Start(startCtx)
+	cancelStart()
+	if startErr != nil {
+		log.Fatal(startErr)
 	}
 
-	for _, routeInfo := range engine.Routes() {
-		fmt.Printf("method: [%s], path: [%s], handler: [%s]\n", routeInfo.Method, routeInfo.Path, routeInfo.Handler)
+	runErr := runner.Run()
+
+	stopCtx, cancelStop := context.WithTimeout(context.Background(), 15*time.Second)
+	stopErr := fxApp.Stop(stopCtx)
+	cancelStop()
+
+	if runErr != nil {
+		log.Fatal(runErr)
+	}
+	if stopErr != nil {
+		log.Fatal(stopErr)
 	}
 }

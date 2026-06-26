@@ -3,7 +3,6 @@ package httpapi
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
@@ -11,6 +10,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -24,6 +24,15 @@ type HttpApiSearchData struct {
 	HttpApis                      []HttpApiData `json:"http_apis" mapstructure:"http_apis" validate:"required"`
 	pagination.PaginationResponse `mapstructure:",squash"`
 }
+type SearchHandler struct {
+	database *gorm.DB
+	logger   *zap.Logger
+}
+
+func NewSearchHandler(database *gorm.DB, logger *zap.Logger) *SearchHandler {
+	return &SearchHandler{
+		database: database, logger: logger}
+}
 
 // @tags admin-http-api
 // @accept json
@@ -36,11 +45,11 @@ type HttpApiSearchData struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/http-api [get]
-func Search(c *gin.Context) {
+func (h *SearchHandler) Handle(c *gin.Context) {
 	queryString := new(HttpApiSearchRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindQuery(queryString); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
@@ -55,7 +64,7 @@ func Search(c *gin.Context) {
 		},
 	}
 	paginator := pagination.NewPaginator(
-		database.NewTxByTable("http_apis"),
+		database.NewTxByTable(h.database, "http_apis"),
 		whereConditions,
 		nil,
 		queryString.Page,
@@ -65,7 +74,7 @@ func Search(c *gin.Context) {
 
 	httpApis := []model.HttpApi{}
 	if err := paginator.Execute(&httpApis).Error; err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

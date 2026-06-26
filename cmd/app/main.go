@@ -6,6 +6,7 @@ import (
 	internalhttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/scheduler"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/fx"
@@ -27,6 +28,7 @@ func main() {
 		fx.Supply(booterConfig),
 		registrar.NewModule(),
 		route.NewModule(),
+		scheduler.NewModule(),
 		fx.Invoke(
 			func(*internalhttp.Server) {},
 		),

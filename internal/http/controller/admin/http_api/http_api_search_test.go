@@ -37,7 +37,7 @@ func (suite *HttpApiSearchTestSuite) Test() {
 		Method: "GET",
 		Path:   "/api/test-api",
 	}
-	if err := permission.CreateHttpApi(database.NewTx(), httpApi); err != nil {
+	if err := permission.CreateHttpApi(database.NewTx(suite.runtime.Rdbms.Database()), httpApi); err != nil {
 		panic(err)
 	}
 

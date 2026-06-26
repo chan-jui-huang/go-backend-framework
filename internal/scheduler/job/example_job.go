@@ -3,19 +3,23 @@ package job
 import "fmt"
 
 type ExampleJob struct {
-	frequency string
-	name      string
+	cronExpression string
+	name           string
 }
 
 func NewExampleJob() *ExampleJob {
 	return &ExampleJob{
-		frequency: "* * * * * *",
-		name:      "example job",
+		cronExpression: "* * * * * *",
+		name:           "example",
 	}
 }
 
-func (job *ExampleJob) GetFrequency() string {
-	return job.frequency
+func (job *ExampleJob) Name() string {
+	return job.name
+}
+
+func (job *ExampleJob) CronExpression() string {
+	return job.cronExpression
 }
 
 func (job *ExampleJob) Execute() {

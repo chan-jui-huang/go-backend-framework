@@ -1,8 +1,12 @@
 package route
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
+	admincontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin"
+	systemcontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/system"
+	usercontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/admin"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/user"
 	"go.uber.org/fx"
 )
 
@@ -10,11 +14,23 @@ import (
 func NewModule() fx.Option {
 	return fx.Module(
 		"http.route",
-		admin.NewModule(),
-		user.NewModule(),
+		middleware.NewModule(),
+		admincontroller.NewModule(),
+		systemcontroller.NewModule(),
+		usercontroller.NewModule(),
 		fx.Provide(
-			NewApiRouter,
-			NewSwaggerRouter,
+			admin.NewRouter,
+			user.NewRouter,
+			fx.Annotate(
+				NewApiRouter,
+				fx.As(new(Router)),
+				fx.ResultTags(`group:"routers"`),
+			),
+			fx.Annotate(
+				NewSwaggerRouter,
+				fx.As(new(Router)),
+				fx.ResultTags(`group:"routers"`),
+			),
 		),
 	)
 }

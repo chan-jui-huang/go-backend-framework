@@ -4,17 +4,25 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-func AccessLogger() gin.HandlerFunc {
+type AccessLogMiddleware struct {
+	logger *zap.Logger
+}
+
+func NewAccessLogMiddleware(logger *zap.Logger) *AccessLogMiddleware {
+	return &AccessLogMiddleware{
+		logger: logger,
+	}
+}
+
+func (m *AccessLogMiddleware) Handle() gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/skip-path": true,
 	}
-	accessLogger := deps.AccessLogger()
 
 	return func(c *gin.Context) {
 		now := time.Now()
@@ -40,11 +48,11 @@ func AccessLogger() gin.HandlerFunc {
 		message := fmt.Sprintf("%s %s", c.Request.Method, path)
 		switch {
 		case status < 400:
-			accessLogger.Info(message, fields...)
+			m.logger.Info(message, fields...)
 		case status >= 400 && status < 500:
-			accessLogger.Warn(message, fields...)
+			m.logger.Warn(message, fields...)
 		case status >= 500:
-			accessLogger.Error(message, fields...)
+			m.logger.Error(message, fields...)
 		}
 	}
 }

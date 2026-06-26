@@ -3,17 +3,28 @@ package permission
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/casbin/casbin/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type RoleDeleteRequest struct {
 	Ids []uint `json:"ids" binding:"required"`
+}
+type DeleteRolesHandler struct {
+	database       *gorm.DB
+	casbinEnforcer *casbin.SyncedCachedEnforcer
+	logger         *zap.Logger
+}
+
+func NewDeleteRolesHandler(database *gorm.DB, casbinEnforcer *casbin.SyncedCachedEnforcer, logger *zap.Logger) *DeleteRolesHandler {
+	return &DeleteRolesHandler{
+		database: database, casbinEnforcer: casbinEnforcer, logger: logger}
 }
 
 // @tags admin-permission
@@ -29,25 +40,25 @@ type RoleDeleteRequest struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/role [delete]
-func DeleteRoles(c *gin.Context) {
+func (h *DeleteRolesHandler) Handle(c *gin.Context) {
 	reqBody := new(RoleDeleteRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	roles, err := permission.GetRoles(database.NewTx("Permissions", "Users"), "id IN ?", reqBody.Ids)
+	roles, err := permission.GetRoles(database.NewTx(h.database, "Permissions", "Users"), "id IN ?", reqBody.Ids)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	err = database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err = database.NewTx(h.database).Transaction(func(tx *gorm.DB) error {
 		if err := permission.DeleteRolePermission(tx, "role_id IN ?", reqBody.Ids); err != nil {
 			return err
 		}
@@ -80,15 +91,15 @@ func DeleteRoles(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	enforcer := deps.CasbinEnforcer()
+	enforcer := h.casbinEnforcer
 	if err := enforcer.LoadPolicy(); err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

@@ -1,12 +1,11 @@
 package database
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"gorm.io/gorm"
 )
 
-func NewTx(associations ...string) *gorm.DB {
-	tx := deps.Database()
+func NewTx(database *gorm.DB, associations ...string) *gorm.DB {
+	tx := database
 	for _, association := range associations {
 		tx = tx.Preload(association)
 	}
@@ -14,8 +13,7 @@ func NewTx(associations ...string) *gorm.DB {
 	return tx
 }
 
-func NewTxByTable(table string, associations ...string) *gorm.DB {
-	database := deps.Database()
+func NewTxByTable(database *gorm.DB, table string, associations ...string) *gorm.DB {
 	tx := database.Table(table)
 
 	for _, association := range associations {

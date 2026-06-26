@@ -3,16 +3,26 @@ package permission
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type PermissionGetData struct {
 	PermissionData `mapstructure:",squash"`
 	HttpApis       []HttpApiData `json:"http_apis" mapstructure:"http_apis" validate:"required"`
+}
+type GetHandler struct {
+	database *gorm.DB
+	logger   *zap.Logger
+}
+
+func NewGetHandler(database *gorm.DB, logger *zap.Logger) *GetHandler {
+	return &GetHandler{
+		database: database, logger: logger}
 }
 
 // @tags admin-permission
@@ -26,19 +36,19 @@ type PermissionGetData struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/permission/{id} [get]
-func Get(c *gin.Context) {
-	p, err := permission.Get(database.NewTx(), "id = ?", c.Param("id"))
-	logger := deps.Logger()
+func (h *GetHandler) Handle(c *gin.Context) {
+	p, err := permission.Get(database.NewTx(h.database), "id = ?", c.Param("id"))
+	logger := h.logger
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	casbinRules, err := permission.GetCasbinRules(database.NewTx(), "ptype = ? AND v0 = ?", "p", p.Name)
+	casbinRules, err := permission.GetCasbinRules(database.NewTx(h.database), "ptype = ? AND v0 = ?", "p", p.Name)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

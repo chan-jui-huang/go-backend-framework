@@ -6,7 +6,7 @@ require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.43.0
 	github.com/casbin/casbin/v3 v3.10.0
 	github.com/casbin/gorm-adapter/v3 v3.41.0
-	github.com/chan-jui-huang/go-backend-package/v2 v2.0.2
+	github.com/chan-jui-huang/go-backend-package/v2 v2.1.0
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/form/v4 v4.3.0

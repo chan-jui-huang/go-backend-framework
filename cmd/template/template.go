@@ -28,10 +28,6 @@ func main() {
 			appregistrar.NewLoggers,
 			appregistrar.NewCasbinEnforcer,
 		),
-		fx.Invoke(
-			appregistrar.RegisterConfigDependencies,
-			appregistrar.RegisterServiceDependencies,
-		),
 	)
 	if err := fxApp.Err(); err != nil {
 		panic(err)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
@@ -12,6 +11,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +25,15 @@ type RoleSearchData struct {
 	Roles                         []RoleData `json:"roles" mapstructure:"roles" validate:"required"`
 	pagination.PaginationResponse `mapstructure:",squash"`
 }
+type SearchRolesHandler struct {
+	database *gorm.DB
+	logger   *zap.Logger
+}
+
+func NewSearchRolesHandler(database *gorm.DB, logger *zap.Logger) *SearchRolesHandler {
+	return &SearchRolesHandler{
+		database: database, logger: logger}
+}
 
 // @tags admin-permission
 // @accept json
@@ -37,11 +46,11 @@ type RoleSearchData struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/role [get]
-func SearchRoles(c *gin.Context) {
+func (h *SearchRolesHandler) Handle(c *gin.Context) {
 	queryString := new(RoleSearchRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindQuery(queryString); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
@@ -56,7 +65,7 @@ func SearchRoles(c *gin.Context) {
 		},
 	}
 	paginator := pagination.NewPaginator(
-		database.NewTxByTable("roles", "Permissions"),
+		database.NewTxByTable(h.database, "roles", "Permissions"),
 		wm,
 		nil,
 		queryString.Page,
@@ -67,7 +76,7 @@ func SearchRoles(c *gin.Context) {
 	db := paginator.AddWhereConditions(structs.Map(queryString)).
 		Execute(&roles)
 	if err := db.Error; err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

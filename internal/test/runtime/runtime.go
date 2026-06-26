@@ -1,24 +1,19 @@
 package runtime
 
 import (
-	"fmt"
-	"os"
-	"path"
-	"runtime"
 	"testing"
 	"time"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
+	testconfig "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/config"
 	dbfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/db"
 	domainfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
 	httpfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/http"
 	scenariofixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/scenario"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/mold/v4/modifiers"
-	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/fx/fxtest"
@@ -44,10 +39,13 @@ type RuntimeOptions struct {
 func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	tb.Helper()
 
-	wd, envFile, configFile := testConfigFiles()
-	loadEnv(wd, envFile)
+	files := testconfig.NewFiles("../../..")
+	testconfig.LoadEnv(files)
 
-	booterConfig := booter.NewConfig(wd, configFile, false)
+	booterConfig := booter.NewConfig(files.WorkDir, files.ConfigFile, false)
+	rt := &Runtime{
+		options: options,
+	}
 
 	app := fxtest.New(
 		tb,
@@ -74,37 +72,35 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 			registrar.NewCasbinEnforcer,
 			form.NewDecoder,
 			modifiers.New,
+			httpfixture.NewEngine,
+			dbfixture.NewRdbmsMigration,
+			dbfixture.NewClickhouseMigration,
+			domainfixture.NewUserFixture,
+			domainfixture.NewPermissionFixture,
+			httpfixture.New,
+			scenariofixture.NewUserAPI,
+			scenariofixture.NewAdminAPI,
 		),
+		route.NewModule(),
 		fx.Invoke(
 			fx.Annotate(
 				func() {},
 				fx.OnStart(registrar.ValidatorOnStart),
 			),
-			registrar.RegisterConfigDependencies,
-			registrar.RegisterServiceDependencies,
+		),
+		fx.Populate(
+			&rt.HTTP,
+			&rt.Rdbms,
+			&rt.Clickhouse,
+			&rt.Users,
+			&rt.Permissions,
+			&rt.UserAPI,
+			&rt.AdminAPI,
 		),
 	)
 	app.RequireStart()
 
-	emptyMockedServices()
-	httpHandler := httpfixture.New()
-	enforcer := deps.CasbinEnforcer()
-	db := deps.Database()
-	userFixture := domainfixture.NewUserFixture(db)
-	permissionFixture := domainfixture.NewPermissionFixture(enforcer, db)
-	userAPI := scenariofixture.NewUserAPI(httpHandler, userFixture)
-
-	rt := &Runtime{
-		app:         app,
-		options:     options,
-		HTTP:        httpHandler,
-		Rdbms:       dbfixture.NewRdbmsMigration(),
-		Clickhouse:  dbfixture.NewClickhouseMigration(),
-		Users:       userFixture,
-		Permissions: permissionFixture,
-		UserAPI:     userAPI,
-		AdminAPI:    scenariofixture.NewAdminAPI(userFixture, permissionFixture, userAPI),
-	}
+	rt.app = app
 
 	if rt.options.UseRdbms {
 		rt.Rdbms.Run()
@@ -161,36 +157,4 @@ func (rt *Runtime) Close() {
 		rt.app.RequireStop()
 		rt.app = nil
 	}
-}
-
-func testConfigFiles() (string, string, string) {
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("runtime caller cannot get file information")
-	}
-
-	wd := path.Join(path.Dir(file), "../../..")
-	env := "test"
-	if e := os.Getenv("ENV"); e != "" {
-		switch e {
-		case "test":
-			env = e
-		default:
-			panic(fmt.Sprintf("unsupported ENV for test setup: %s", e))
-		}
-	}
-
-	return wd, fmt.Sprintf(".env.%s", env), fmt.Sprintf("config.%s.yml", env)
-}
-
-func loadEnv(wd string, envFile string) {
-	if err := godotenv.Load(path.Join(wd, envFile)); err != nil {
-		panic(err)
-	}
-
-	gin.SetMode(gin.ReleaseMode)
-}
-
-func emptyMockedServices() {
-	// If you register a new mock dependency, initialize its empty test value here.
 }
