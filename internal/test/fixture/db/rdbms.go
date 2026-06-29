@@ -3,34 +3,57 @@ package db
 import (
 	"path"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/casbin/casbin/v3"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/database"
 	"github.com/pressly/goose/v3"
+	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
-type RdbmsMigration struct {
-	dir string
+type RdbmsMigrationDependencies struct {
+	fx.In
+
+	BooterConfig   *booter.Config
+	DatabaseConfig *database.Config
+	Database       *gorm.DB
+	CasbinEnforcer *casbin.SyncedCachedEnforcer
 }
 
-func NewRdbmsMigration() *RdbmsMigration {
-	booterConfig := deps.BooterConfig()
+type RdbmsMigration struct {
+	dir            string
+	databaseConfig *database.Config
+	database       *gorm.DB
+	casbinEnforcer *casbin.SyncedCachedEnforcer
+}
 
+func NewRdbmsMigration(dependencies RdbmsMigrationDependencies) *RdbmsMigration {
 	return &RdbmsMigration{
-		dir: path.Join(booterConfig.RootDir, "internal/migration/rdbms/test"),
+		dir:            path.Join(dependencies.BooterConfig.RootDir, "internal/migration/rdbms/test"),
+		databaseConfig: dependencies.DatabaseConfig,
+		database:       dependencies.Database,
+		casbinEnforcer: dependencies.CasbinEnforcer,
 	}
 }
 
+func (rm *RdbmsMigration) Database() *gorm.DB {
+	return rm.database
+}
+
+func (rm *RdbmsMigration) Enforcer() *casbin.SyncedCachedEnforcer {
+	return rm.casbinEnforcer
+}
+
 func (rm *RdbmsMigration) Run(callbacks ...func()) {
-	databaseConfig := deps.DatabaseConfig()
-	database := deps.Database()
-	db, err := database.DB()
+	db, err := rm.database.DB()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := goose.SetDialect(string(databaseConfig.Driver)); err != nil {
+	if err := goose.SetDialect(string(rm.databaseConfig.Driver)); err != nil {
 		panic(err)
 	}
-	if err := goose.Up(db, rm.dir); err != nil {
+	if err := goose.Up(db, rm.dir, goose.WithAllowMissing()); err != nil {
 		panic(err)
 	}
 
@@ -44,14 +67,12 @@ func (rm *RdbmsMigration) Reset() {
 		return
 	}
 
-	databaseConfig := deps.DatabaseConfig()
-	database := deps.Database()
-	db, err := database.DB()
+	db, err := rm.database.DB()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := goose.SetDialect(string(databaseConfig.Driver)); err != nil {
+	if err := goose.SetDialect(string(rm.databaseConfig.Driver)); err != nil {
 		panic(err)
 	}
 
@@ -59,13 +80,12 @@ func (rm *RdbmsMigration) Reset() {
 		panic(err)
 	}
 
-	err = database.Exec("DELETE FROM casbin_rules").Error
+	err = rm.database.Exec("DELETE FROM casbin_rules").Error
 	if err != nil {
 		panic(err)
 	}
 
-	enforcer := deps.CasbinEnforcer()
-	if err := enforcer.LoadPolicy(); err != nil {
+	if err := rm.casbinEnforcer.LoadPolicy(); err != nil {
 		panic(err)
 	}
 }

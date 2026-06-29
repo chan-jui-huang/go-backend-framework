@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"net/http"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/casbin/casbin/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -28,6 +29,16 @@ type PermissionUpdateData struct {
 	PermissionData `mapstructure:",squash"`
 	HttpApis       []HttpApiData `json:"http_apis" mapstructure:"http_apis" validate:"required"`
 }
+type UpdateHandler struct {
+	database       *gorm.DB
+	casbinEnforcer *casbin.SyncedCachedEnforcer
+	logger         *zap.Logger
+}
+
+func NewUpdateHandler(database *gorm.DB, casbinEnforcer *casbin.SyncedCachedEnforcer, logger *zap.Logger) *UpdateHandler {
+	return &UpdateHandler{
+		database: database, casbinEnforcer: casbinEnforcer, logger: logger}
+}
 
 // @tags admin-permission
 // @accept json
@@ -42,11 +53,11 @@ type PermissionUpdateData struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/permission/{id} [put]
-func Update(c *gin.Context) {
+func (h *UpdateHandler) Handle(c *gin.Context) {
 	reqBody := new(PermissionUpdateRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
@@ -60,7 +71,7 @@ func Update(c *gin.Context) {
 		casbinRules[i].V2 = reqBody.HttpApis[i].Method
 	}
 
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(h.database).Transaction(func(tx *gorm.DB) error {
 		p, err := permission.Get(tx.Clauses(clause.Locking{Strength: "UPDATE"}), "id = ?", c.Param("id"))
 		if err != nil {
 			return err
@@ -93,23 +104,23 @@ func Update(c *gin.Context) {
 		return nil
 	})
 	if err != nil && !errors.Is(err, sql.ErrTxDone) {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	enforcer := deps.CasbinEnforcer()
+	enforcer := h.casbinEnforcer
 	if err := enforcer.LoadPolicy(); err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	p, err := permission.Get(database.NewTx(), "id = ?", c.Param("id"))
+	p, err := permission.Get(database.NewTx(h.database), "id = ?", c.Param("id"))
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

@@ -7,19 +7,39 @@ import (
 )
 
 type Router struct {
-	router *gin.RouterGroup
+	router          *gin.RouterGroup
+	registerHandler *user.RegisterHandler
+	loginHandler    *user.LoginHandler
+	getMeHandler    *user.GetMeHandler
+	updateHandler   *user.UpdateHandler
+	updatePassword  *user.UpdatePasswordHandler
+	authentication  *middleware.AuthenticationMiddleware
 }
 
-func NewRouter(router *gin.Engine) *Router {
+func NewRouter(
+	router *gin.Engine,
+	registerHandler *user.RegisterHandler,
+	loginHandler *user.LoginHandler,
+	getMeHandler *user.GetMeHandler,
+	updateHandler *user.UpdateHandler,
+	updatePassword *user.UpdatePasswordHandler,
+	authentication *middleware.AuthenticationMiddleware,
+) *Router {
 	return &Router{
-		router: router.Group("api/user"),
+		router:          router.Group("api/user"),
+		registerHandler: registerHandler,
+		loginHandler:    loginHandler,
+		getMeHandler:    getMeHandler,
+		updateHandler:   updateHandler,
+		updatePassword:  updatePassword,
+		authentication:  authentication,
 	}
 }
 
 func (r *Router) AttachRoutes() {
-	r.router.POST("register", user.Register)
-	r.router.POST("login", user.Login)
-	r.router.GET("me", middleware.Authenticate(), user.Me)
-	r.router.PUT("", middleware.Authenticate(), user.Update)
-	r.router.PUT("password", middleware.Authenticate(), user.UpdatePassword)
+	r.router.POST("register", r.registerHandler.Handle)
+	r.router.POST("login", r.loginHandler.Handle)
+	r.router.GET("me", r.authentication.Handle(), r.getMeHandler.Handle)
+	r.router.PUT("", r.authentication.Handle(), r.updateHandler.Handle)
+	r.router.PUT("password", r.authentication.Handle(), r.updatePassword.Handle)
 }

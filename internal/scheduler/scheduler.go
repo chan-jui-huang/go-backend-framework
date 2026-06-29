@@ -1,27 +1,29 @@
 package scheduler
 
 import (
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/scheduler"
+	"go.uber.org/zap"
 )
 
-func backlogJobs() {
-	scheduler.Scheduler.BacklogJobs(map[string]scheduler.Job{
-		// "example": job.NewExampleJob(),
-	})
+type Scheduler struct {
+	logger *zap.Logger
+	jobs   []scheduler.Job
 }
 
-func Start() {
-	backlogJobs()
+func NewScheduler(logger *zap.Logger, jobs []scheduler.Job) *Scheduler {
+	return &Scheduler{
+		logger: logger,
+		jobs:   jobs,
+	}
+}
+
+func (s *Scheduler) Start() {
+	scheduler.Scheduler.QueueJobs(s.jobs)
 	scheduler.Scheduler.Start()
-
-	logger := deps.Logger()
-	logger.Info("scheduler is started")
+	s.logger.Info("scheduler is started")
 }
 
-func Stop() {
+func (s *Scheduler) Stop() {
 	<-scheduler.Scheduler.Stop().Done()
-
-	logger := deps.Logger()
-	logger.Info("scheduler is stopped")
+	s.logger.Info("scheduler is stopped")
 }

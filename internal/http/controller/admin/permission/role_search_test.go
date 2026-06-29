@@ -35,7 +35,7 @@ func (suite *RoleSearchTestSuite) Test() {
 	role := &model.Role{Name: "role1"}
 	permissionModel := &model.Permission{Name: "permission1"}
 
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(suite.runtime.Rdbms.Database()).Transaction(func(tx *gorm.DB) error {
 		if err := pkgPermission.Create(tx, permissionModel); err != nil {
 			return err
 		}

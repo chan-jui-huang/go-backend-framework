@@ -3,13 +3,13 @@ package permission
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +17,15 @@ type RoleCreateRequest struct {
 	Name          string `json:"name" binding:"required"`
 	IsPublic      bool   `json:"is_public"`
 	PermissionIds []uint `json:"permission_ids" binding:"required,min=1"`
+}
+type CreateRoleHandler struct {
+	database *gorm.DB
+	logger   *zap.Logger
+}
+
+func NewCreateRoleHandler(database *gorm.DB, logger *zap.Logger) *CreateRoleHandler {
+	return &CreateRoleHandler{
+		database: database, logger: logger}
 }
 
 // @tags admin-permission
@@ -31,11 +40,11 @@ type RoleCreateRequest struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/role [post]
-func CreateRole(c *gin.Context) {
+func (h *CreateRoleHandler) Handle(c *gin.Context) {
 	reqBody := new(RoleCreateRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
@@ -46,7 +55,7 @@ func CreateRole(c *gin.Context) {
 		IsPublic: reqBody.IsPublic,
 	}
 	rolePermissions := make([]model.RolePermission, len(reqBody.PermissionIds))
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(h.database).Transaction(func(tx *gorm.DB) error {
 		if err := permission.CreateRole(tx, role); err != nil {
 			return err
 		}
@@ -62,15 +71,15 @@ func CreateRole(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	role, err = permission.GetRole(database.NewTx("Permissions"), "id = ?", role.Id)
+	role, err = permission.GetRole(database.NewTx(h.database, "Permissions"), "id = ?", role.Id)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

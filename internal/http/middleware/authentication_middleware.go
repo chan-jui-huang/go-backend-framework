@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/user"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/authentication"
@@ -12,33 +11,47 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
-func Authenticate() gin.HandlerFunc {
-	logger := deps.Logger()
-	authenticator := deps.Authenticator()
+type AuthenticationMiddleware struct {
+	logger        *zap.Logger
+	authenticator *authentication.Authenticator
+}
+
+func NewAuthenticationMiddleware(
+	logger *zap.Logger,
+	authenticator *authentication.Authenticator,
+) *AuthenticationMiddleware {
+	return &AuthenticationMiddleware{
+		logger:        logger,
+		authenticator: authenticator,
+	}
+}
+
+func (m *AuthenticationMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorizationHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authorizationHeader, "Bearer") {
-			errResp := response.NewErrorResponse(response.Unauthorized, errors.New("jwt authentication failed"), nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
+			errResp := response.NewErrorResponse(response.Unauthorized, errors.New("jwt authentication failed"), nil, response.DebugMode(c))
+			m.logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
 
 		accessTokenString := strings.Replace(authorizationHeader, "Bearer ", "", 1)
-		subject, err := verifyAccessToken(authenticator, accessTokenString)
+		subject, err := verifyAccessToken(m.authenticator, accessTokenString)
 		if err != nil {
-			errResp := response.NewErrorResponse(response.Unauthorized, err, nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
+			errResp := response.NewErrorResponse(response.Unauthorized, err, nil, response.DebugMode(c))
+			m.logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
 
 		values, err := url.ParseQuery(subject)
 		if err != nil {
-			errResp := response.NewErrorResponse(response.Unauthorized, errors.WithStack(err), nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
+			errResp := response.NewErrorResponse(response.Unauthorized, errors.WithStack(err), nil, response.DebugMode(c))
+			m.logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}
@@ -46,8 +59,8 @@ func Authenticate() gin.HandlerFunc {
 		decoder := schema.NewDecoder()
 		userQuery := &user.Query{}
 		if err := decoder.Decode(userQuery, values); err != nil {
-			errResp := response.NewErrorResponse(response.Unauthorized, errors.WithStack(err), nil)
-			logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
+			errResp := response.NewErrorResponse(response.Unauthorized, errors.WithStack(err), nil, response.DebugMode(c))
+			m.logger.Warn(response.Unauthorized, errResp.MakeLogFields(c)...)
 			c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 			return
 		}

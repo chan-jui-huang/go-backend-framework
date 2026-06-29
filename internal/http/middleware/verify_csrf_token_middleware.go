@@ -4,30 +4,44 @@ import (
 	"net/http"
 
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/config"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/random"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
-func VerifyCsrfToken(config *config.CsrfConfig) gin.HandlerFunc {
+type CsrfMiddleware struct {
+	logger *zap.Logger
+	config *config.CsrfConfig
+}
+
+func NewCsrfMiddleware(
+	logger *zap.Logger,
+	config *config.CsrfConfig,
+) *CsrfMiddleware {
+	return &CsrfMiddleware{
+		logger: logger,
+		config: config,
+	}
+}
+
+func (m *CsrfMiddleware) Handle() gin.HandlerFunc {
 	skipPaths := map[string]bool{
 		"/skip-path": true,
 	}
-	logger := deps.Logger()
 
 	return func(c *gin.Context) {
-		setCsrfToken(c, config)
+		setCsrfToken(c, m.config)
 		if isReadingHttpMethod(c) ||
 			skipPaths[c.Request.URL.Path] ||
-			verifyCsrfToken(c, config.Cookie.Name, config.Header) {
+			verifyCsrfToken(c, m.config.Cookie.Name, m.config.Header) {
 			c.Next()
 			return
 		}
 
-		errResp := response.NewErrorResponse(response.Forbidden, errors.New("csrf token mismatch"), nil)
-		logger.Warn(response.Forbidden, errResp.MakeLogFields(c)...)
+		errResp := response.NewErrorResponse(response.Forbidden, errors.New("csrf token mismatch"), nil, response.DebugMode(c))
+		m.logger.Warn(response.Forbidden, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 	}
 }

@@ -1,18 +1,33 @@
 package middleware
 
-import (
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
-func AttachGlobalMiddleware(router *gin.Engine) {
-	handlerFunctions := []gin.HandlerFunc{
-		AccessLogger(),
-		Recover(),
-		VerifyCsrfToken(deps.CsrfConfig()),
+type GlobalMiddlewares struct {
+	accessLog       *AccessLogMiddleware
+	recover         *RecoverMiddleware
+	csrf            *CsrfMiddleware
+	responseContext *ResponseContextMiddleware
+}
+
+func NewGlobalMiddlewares(
+	accessLog *AccessLogMiddleware,
+	recover *RecoverMiddleware,
+	csrf *CsrfMiddleware,
+	responseContext *ResponseContextMiddleware,
+) *GlobalMiddlewares {
+	return &GlobalMiddlewares{
+		accessLog:       accessLog,
+		recover:         recover,
+		csrf:            csrf,
+		responseContext: responseContext,
 	}
+}
 
+func (m *GlobalMiddlewares) Attach(router *gin.Engine) {
 	router.Use(
-		handlerFunctions...,
+		m.accessLog.Handle(),
+		m.recover.Handle(),
+		m.responseContext.Handle(),
+		m.csrf.Handle(),
 	)
 }

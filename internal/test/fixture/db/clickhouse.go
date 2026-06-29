@@ -6,24 +6,41 @@ import (
 	"path"
 
 	ch "github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/clickhouse"
 	"github.com/pressly/goose/v3"
+	"go.uber.org/fx"
 )
 
-type ClickhouseMigration struct {
-	dir string
+type ClickhouseMigrationDependencies struct {
+	fx.In
+
+	BooterConfig     *booter.Config
+	ClickhouseConfig *clickhouse.Config
+	Clickhouse       driver.Conn
 }
 
-func NewClickhouseMigration() *ClickhouseMigration {
-	booterConfig := deps.BooterConfig()
+type ClickhouseMigration struct {
+	dir              string
+	clickhouseConfig *clickhouse.Config
+	clickhouse       driver.Conn
+}
 
+func NewClickhouseMigration(dependencies ClickhouseMigrationDependencies) *ClickhouseMigration {
 	return &ClickhouseMigration{
-		dir: path.Join(booterConfig.RootDir, "internal/migration/clickhouse/test"),
+		dir:              path.Join(dependencies.BooterConfig.RootDir, "internal/migration/clickhouse/test"),
+		clickhouseConfig: dependencies.ClickhouseConfig,
+		clickhouse:       dependencies.Clickhouse,
 	}
 }
 
+func (cm *ClickhouseMigration) Conn() driver.Conn {
+	return cm.clickhouse
+}
+
 func (cm *ClickhouseMigration) Run(callbacks ...func()) {
-	clickhouseConfig := deps.ClickhouseConfig()
+	clickhouseConfig := cm.clickhouseConfig
 	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password))
 	if err != nil {
 		panic(err)
@@ -50,7 +67,7 @@ func (cm *ClickhouseMigration) Run(callbacks ...func()) {
 		panic(err)
 	}
 
-	if err := goose.Up(conn, cm.dir); err != nil {
+	if err := goose.Up(conn, cm.dir, goose.WithAllowMissing()); err != nil {
 		panic(err)
 	}
 
@@ -64,7 +81,7 @@ func (cm *ClickhouseMigration) Reset() {
 		return
 	}
 
-	clickhouseConfig := deps.ClickhouseConfig()
+	clickhouseConfig := cm.clickhouseConfig
 	conn, err := sql.Open("clickhouse", fmt.Sprintf("tcp://%s?username=%s&password=%s&database=%s", clickhouseConfig.Addr[0], clickhouseConfig.Username, clickhouseConfig.Password, clickhouseConfig.Database))
 	if err != nil {
 		panic(err)

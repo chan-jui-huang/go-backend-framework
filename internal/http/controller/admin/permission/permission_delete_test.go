@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
@@ -44,7 +44,7 @@ func (suite *PermissionDeleteTestSuite) SetupTest() {
 		},
 	}
 
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(suite.runtime.Rdbms.Database()).Transaction(func(tx *gorm.DB) error {
 		if err := pkgPermission.Create(tx, permissionModel); err != nil {
 			return err
 		}
@@ -79,12 +79,12 @@ func (suite *PermissionDeleteTestSuite) Test() {
 	resp := httptest.NewRecorder()
 	suite.runtime.HTTP.ServeHTTP(resp, req)
 
-	p, err := pkgPermission.GetCasbinRules(database.NewTx(), "ptype = ? AND v0 = ?", "p", suite.permission.Name)
+	p, err := pkgPermission.GetCasbinRules(database.NewTx(suite.runtime.Rdbms.Database()), "ptype = ? AND v0 = ?", "p", suite.permission.Name)
 	if err != nil {
 		panic(err)
 	}
 
-	g, err := pkgPermission.GetCasbinRules(database.NewTx(), "ptype = ? AND v1 = ?", "g", suite.permission.Name)
+	g, err := pkgPermission.GetCasbinRules(database.NewTx(suite.runtime.Rdbms.Database()), "ptype = ? AND v1 = ?", "g", suite.permission.Name)
 	if err != nil {
 		panic(err)
 	}

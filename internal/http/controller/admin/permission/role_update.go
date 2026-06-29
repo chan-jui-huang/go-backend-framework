@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/casbin/casbin/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -23,6 +24,16 @@ type RoleUpdateRequest struct {
 	Name          string `json:"name" structs:"name" binding:"required"`
 	IsPublic      bool   `json:"is_public" structs:"is_public"`
 	PermissionIds []uint `json:"permission_ids" structs:"-" binding:"required,min=1"`
+}
+type UpdateRoleHandler struct {
+	database       *gorm.DB
+	casbinEnforcer *casbin.SyncedCachedEnforcer
+	logger         *zap.Logger
+}
+
+func NewUpdateRoleHandler(database *gorm.DB, casbinEnforcer *casbin.SyncedCachedEnforcer, logger *zap.Logger) *UpdateRoleHandler {
+	return &UpdateRoleHandler{
+		database: database, casbinEnforcer: casbinEnforcer, logger: logger}
 }
 
 // @tags admin-permission
@@ -38,18 +49,18 @@ type RoleUpdateRequest struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/role/{id} [put]
-func UpdateRole(c *gin.Context) {
+func (h *UpdateRoleHandler) Handle(c *gin.Context) {
 	reqBody := new(RoleUpdateRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
 	rolePermissions := make([]model.RolePermission, len(reqBody.PermissionIds))
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(h.database).Transaction(func(tx *gorm.DB) error {
 		role, err := permission.GetRole(
 			tx.Table("roles").Preload("Permissions").Preload("Users").Clauses(clause.Locking{Strength: "UPDATE"}),
 			"id = ?",
@@ -115,23 +126,23 @@ func UpdateRole(c *gin.Context) {
 		return nil
 	})
 	if err != nil && !errors.Is(err, sql.ErrTxDone) {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	enforcer := deps.CasbinEnforcer()
+	enforcer := h.casbinEnforcer
 	if err := enforcer.LoadPolicy(); err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	role, err := permission.GetRole(database.NewTx("Permissions"), "id = ?", c.Param("id"))
+	role, err := permission.GetRole(database.NewTx(h.database, "Permissions"), "id = ?", c.Param("id"))
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

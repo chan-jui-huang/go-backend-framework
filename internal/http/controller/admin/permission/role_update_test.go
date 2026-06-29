@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
@@ -49,7 +49,7 @@ func (suite *RoleUpdateTestSuite) SetupTest() {
 		},
 	}
 
-	err := database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err := database.NewTx(suite.runtime.Rdbms.Database()).Transaction(func(tx *gorm.DB) error {
 		if err := pkgPermission.Create(tx, permissionModel); err != nil {
 			return err
 		}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
+	"github.com/casbin/casbin/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
@@ -14,12 +14,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type UserRoleUpdateRequest struct {
 	UserId  uint   `json:"user_id" binding:"required"`
 	RoleIds []uint `json:"role_ids" binding:"required"`
+}
+type UpdateUserRoleHandler struct {
+	database       *gorm.DB
+	casbinEnforcer *casbin.SyncedCachedEnforcer
+	logger         *zap.Logger
+}
+
+func NewUpdateUserRoleHandler(database *gorm.DB, casbinEnforcer *casbin.SyncedCachedEnforcer, logger *zap.Logger) *UpdateUserRoleHandler {
+	return &UpdateUserRoleHandler{
+		database: database, casbinEnforcer: casbinEnforcer, logger: logger}
 }
 
 // @tags admin-user
@@ -34,19 +45,19 @@ type UserRoleUpdateRequest struct {
 // @failure 403 {object} response.ErrorResponse "code: 403-001(Forbidden)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/admin/user-role [put]
-func UpdateUserRole(c *gin.Context) {
+func (h *UpdateUserRoleHandler) Handle(c *gin.Context) {
 	reqBody := new(UserRoleUpdateRequest)
-	logger := deps.Logger()
+	logger := h.logger
 	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	roles, err := permission.GetRoles(database.NewTx("Permissions"), "id IN ?", reqBody.RoleIds)
+	roles, err := permission.GetRoles(database.NewTx(h.database, "Permissions"), "id IN ?", reqBody.RoleIds)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
@@ -57,7 +68,7 @@ func UpdateUserRole(c *gin.Context) {
 		permissions = append(permissions, roles[i].Permissions...)
 	}
 	if len(permissions) != len(lo.Union(permissions)) {
-		errResp := response.NewErrorResponse(response.PermissionIsRepeat, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.PermissionIsRepeat, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
@@ -76,7 +87,7 @@ func UpdateUserRole(c *gin.Context) {
 		userRoles[i].UserId = reqBody.UserId
 		userRoles[i].RoleId = reqBody.RoleIds[i]
 	}
-	err = database.NewTx().Transaction(func(tx *gorm.DB) error {
+	err = database.NewTx(h.database).Transaction(func(tx *gorm.DB) error {
 		if err := permission.DeleteUserRole(tx, "user_id = ?", reqBody.UserId); err != nil {
 			return err
 		}
@@ -100,23 +111,23 @@ func UpdateUserRole(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	enforcer := deps.CasbinEnforcer()
+	enforcer := h.casbinEnforcer
 	if err := enforcer.LoadPolicy(); err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	u, err := user.Get(database.NewTx("Roles"), "id = ?", reqBody.UserId)
+	u, err := user.Get(database.NewTx(h.database, "Roles"), "id = ?", reqBody.UserId)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil)
+		errResp := response.NewErrorResponse(response.BadRequest, errors.WithStack(err), nil, response.DebugMode(c))
 		logger.Warn(errResp.Message, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

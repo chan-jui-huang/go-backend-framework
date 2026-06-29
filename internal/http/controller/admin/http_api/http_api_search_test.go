@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	httpapi "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
@@ -37,7 +37,7 @@ func (suite *HttpApiSearchTestSuite) Test() {
 		Method: "GET",
 		Path:   "/api/test-api",
 	}
-	if err := permission.CreateHttpApi(database.NewTx(), httpApi); err != nil {
+	if err := permission.CreateHttpApi(database.NewTx(suite.runtime.Rdbms.Database()), httpApi); err != nil {
 		panic(err)
 	}
 

@@ -3,18 +3,28 @@ package user
 import (
 	"net/http"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/user"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type UserUpdateRequest struct {
 	Name  string `json:"name" binding:"required" structs:"name"`
 	Email string `json:"email" binding:"required" structs:"email"`
+}
+type UpdateHandler struct {
+	database *gorm.DB
+	logger   *zap.Logger
+}
+
+func NewUpdateHandler(database *gorm.DB, logger *zap.Logger) *UpdateHandler {
+	return &UpdateHandler{
+		database: database, logger: logger}
 }
 
 // @tags user
@@ -28,28 +38,28 @@ type UserUpdateRequest struct {
 // @failure 401 {object} response.ErrorResponse "code: 401-001(Unauthorized)"
 // @failure 500 {object} response.ErrorResponse "code: 500-001(Internal Server Error)"
 // @router /api/user [put]
-func Update(c *gin.Context) {
-	logger := deps.Logger()
+func (h *UpdateHandler) Handle(c *gin.Context) {
+	logger := h.logger
 	reqBody := new(UserUpdateRequest)
 	if err := c.ShouldBindBodyWithJSON(reqBody); err != nil {
-		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err))
+		errResp := response.NewErrorResponse(response.RequestValidationFailed, errors.WithStack(err), response.MakeValidationErrorContext(err), response.DebugMode(c))
 		logger.Warn(response.RequestValidationFailed, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
 	values := structs.Map(reqBody)
-	_, err := user.Update(database.NewTx(), c.GetUint("user_id"), values)
+	_, err := user.Update(database.NewTx(h.database), c.GetUint("user_id"), values)
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
 		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return
 	}
 
-	u, err := user.Get(database.NewTx(), "id = ?", c.GetUint("user_id"))
+	u, err := user.Get(database.NewTx(h.database), "id = ?", c.GetUint("user_id"))
 	if err != nil {
-		errResp := response.NewErrorResponse(response.BadRequest, err, nil)
+		errResp := response.NewErrorResponse(response.BadRequest, err, nil, response.DebugMode(c))
 		logger.Warn(response.BadRequest, errResp.MakeLogFields(c)...)
 		c.AbortWithStatusJSON(errResp.StatusCode(), errResp)
 		return

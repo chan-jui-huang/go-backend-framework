@@ -3,28 +3,29 @@ package seeder
 import (
 	"fmt"
 
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/deps"
 	"gorm.io/gorm"
 )
 
 type runSeederFunc func(tx *gorm.DB) error
 
 type SeederExecutor struct {
+	database       *gorm.DB
 	order          []string
 	runSeederFuncs map[string]runSeederFunc
 }
 
-func NewSeederExecutor() *SeederExecutor {
+func NewSeederExecutor(database *gorm.DB, httpApiSeeder *HttpApiSeeder) *SeederExecutor {
 	order := []string{
 		"httpApi",
 		"user",
 	}
 	runSeederFuncs := map[string]runSeederFunc{
-		"httpApi": runHttpApiSeeder,
+		"httpApi": httpApiSeeder.Run,
 		"user":    runUserSeeder,
 	}
 
 	return &SeederExecutor{
+		database:       database,
 		order:          order,
 		runSeederFuncs: runSeederFuncs,
 	}
@@ -41,8 +42,7 @@ func (se *SeederExecutor) Run(seeders []string) {
 		seeders = se.order
 	}
 
-	database := deps.Database()
-	err := database.Transaction(func(tx *gorm.DB) error {
+	err := se.database.Transaction(func(tx *gorm.DB) error {
 		for _, seeder := range seeders {
 			if fn, ok := se.runSeederFuncs[seeder]; ok {
 				if err := fn(tx); err != nil {
