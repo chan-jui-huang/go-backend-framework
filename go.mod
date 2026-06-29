@@ -276,8 +276,8 @@ require (
 	github.com/xen0n/gosmopolitan v1.2.2 // indirect
 	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
-	github.com/ydb-platform/ydb-go-genproto v0.0.0-20260128080146-c4ed16b24b37 // indirect
-	github.com/ydb-platform/ydb-go-sdk/v3 v3.127.0 // indirect
+	github.com/ydb-platform/ydb-go-genproto v0.0.0-20260311095541-ebbf792c1180 // indirect
+	github.com/ydb-platform/ydb-go-sdk/v3 v3.134.2 // indirect
 	github.com/yeya24/promlinter v0.3.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.5 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
