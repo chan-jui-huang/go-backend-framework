@@ -34,6 +34,7 @@ type Runtime struct {
 type RuntimeOptions struct {
 	UseRdbms      bool
 	UseClickhouse bool
+	MockServices  MockServices
 }
 
 func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
@@ -81,6 +82,7 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 			scenariofixture.NewUserAPI,
 			scenariofixture.NewAdminAPI,
 		),
+		provideMockServices(options.MockServices),
 		route.NewModule(),
 		fx.Invoke(
 			fx.Annotate(

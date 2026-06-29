@@ -8,6 +8,7 @@ import (
 
 type Runtime = testruntime.Runtime
 type RuntimeOptions = testruntime.RuntimeOptions
+type MockServices = testruntime.MockServices
 
 func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	return testruntime.NewRuntime(tb, options)
