@@ -67,7 +67,7 @@ func (cm *ClickhouseMigration) Run(callbacks ...func()) {
 		panic(err)
 	}
 
-	if err := goose.Up(conn, cm.dir); err != nil {
+	if err := goose.Up(conn, cm.dir, goose.WithAllowMissing()); err != nil {
 		panic(err)
 	}
 

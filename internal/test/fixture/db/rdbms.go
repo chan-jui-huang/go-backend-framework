@@ -53,7 +53,7 @@ func (rm *RdbmsMigration) Run(callbacks ...func()) {
 	if err := goose.SetDialect(string(rm.databaseConfig.Driver)); err != nil {
 		panic(err)
 	}
-	if err := goose.Up(db, rm.dir); err != nil {
+	if err := goose.Up(db, rm.dir, goose.WithAllowMissing()); err != nil {
 		panic(err)
 	}
 
