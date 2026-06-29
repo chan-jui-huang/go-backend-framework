@@ -19,7 +19,7 @@ func NewModule() fx.Option {
 		),
 		fx.Invoke(
 			fx.Annotate(
-				func() {},
+				func(*Scheduler) {},
 				fx.OnStart(SchedulerOnStart),
 				fx.OnStop(SchedulerOnStop),
 			),
