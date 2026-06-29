@@ -2,7 +2,7 @@ package route
 
 import (
 	admincontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin"
-	systemcontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/system"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/system"
 	usercontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/admin"
@@ -16,7 +16,7 @@ func NewModule() fx.Option {
 		"http.route",
 		middleware.NewModule(),
 		admincontroller.NewModule(),
-		systemcontroller.NewModule(),
+		system.NewModule(),
 		usercontroller.NewModule(),
 		fx.Provide(
 			admin.NewRouter,

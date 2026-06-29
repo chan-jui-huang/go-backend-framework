@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	httpapi "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"

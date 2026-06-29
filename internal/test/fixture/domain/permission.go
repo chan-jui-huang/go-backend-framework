@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin/v3"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"

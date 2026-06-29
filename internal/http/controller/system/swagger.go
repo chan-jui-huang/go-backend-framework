@@ -4,8 +4,8 @@ import (
 	_ "github.com/chan-jui-huang/go-backend-framework/v3/docs"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 type SwaggerHandler struct {

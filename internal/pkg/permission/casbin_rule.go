@@ -1,7 +1,7 @@
 package permission
 
 import (
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )

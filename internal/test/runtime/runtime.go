@@ -6,11 +6,11 @@ import (
 
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
-	testconfig "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/config"
-	dbfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/db"
-	domainfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
-	httpfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/http"
-	scenariofixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/scenario"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/config"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/db"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/scenario"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/mold/v4/modifiers"
@@ -22,13 +22,13 @@ import (
 type Runtime struct {
 	app         *fxtest.App
 	options     RuntimeOptions
-	HTTP        *httpfixture.Handler
-	Rdbms       *dbfixture.RdbmsMigration
-	Clickhouse  *dbfixture.ClickhouseMigration
-	Users       *domainfixture.UserFixture
-	Permissions *domainfixture.PermissionFixture
-	UserAPI     *scenariofixture.UserAPI
-	AdminAPI    *scenariofixture.AdminAPI
+	HTTP        *http.Handler
+	Rdbms       *db.RdbmsMigration
+	Clickhouse  *db.ClickhouseMigration
+	Users       *domain.UserFixture
+	Permissions *domain.PermissionFixture
+	UserAPI     *scenario.UserAPI
+	AdminAPI    *scenario.AdminAPI
 }
 
 type RuntimeOptions struct {
@@ -40,8 +40,8 @@ type RuntimeOptions struct {
 func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	tb.Helper()
 
-	files := testconfig.NewFiles("../../..")
-	testconfig.LoadEnv(files)
+	files := config.NewFiles("../../..")
+	config.LoadEnv(files)
 
 	booterConfig := booter.NewConfig(files.WorkDir, files.ConfigFile, false)
 	rt := &Runtime{
@@ -73,14 +73,14 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 			registrar.NewCasbinEnforcer,
 			form.NewDecoder,
 			modifiers.New,
-			httpfixture.NewEngine,
-			dbfixture.NewRdbmsMigration,
-			dbfixture.NewClickhouseMigration,
-			domainfixture.NewUserFixture,
-			domainfixture.NewPermissionFixture,
-			httpfixture.New,
-			scenariofixture.NewUserAPI,
-			scenariofixture.NewAdminAPI,
+			http.NewEngine,
+			db.NewRdbmsMigration,
+			db.NewClickhouseMigration,
+			domain.NewUserFixture,
+			domain.NewPermissionFixture,
+			http.New,
+			scenario.NewUserAPI,
+			scenario.NewAdminAPI,
 		),
 		provideMockServices(options.MockServices),
 		route.NewModule(),

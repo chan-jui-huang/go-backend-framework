@@ -3,8 +3,8 @@ package registrar
 import (
 	"path"
 
-	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
-	booterconfig "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter/config"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter/config"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/logger"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -38,7 +38,7 @@ type NewLoggersParams struct {
 	AccessConfig  *logger.Config `name:"logger.access"`
 }
 
-func NewLoggerConfigs(loader *booterconfig.Loader) LoggerConfigs {
+func NewLoggerConfigs(loader *config.Loader) LoggerConfigs {
 	config := LoggerConfigs{
 		Console: &logger.Config{},
 		File:    &logger.Config{},

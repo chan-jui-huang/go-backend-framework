@@ -2,16 +2,16 @@ package scenario
 
 import (
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
-	domainfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
 )
 
 type AdminAPI struct {
-	users       *domainfixture.UserFixture
-	permissions *domainfixture.PermissionFixture
+	users       *domain.UserFixture
+	permissions *domain.PermissionFixture
 	userAPI     *UserAPI
 }
 
-func NewAdminAPI(users *domainfixture.UserFixture, permissions *domainfixture.PermissionFixture, userAPI *UserAPI) *AdminAPI {
+func NewAdminAPI(users *domain.UserFixture, permissions *domain.PermissionFixture, userAPI *UserAPI) *AdminAPI {
 	return &AdminAPI{
 		users:       users,
 		permissions: permissions,

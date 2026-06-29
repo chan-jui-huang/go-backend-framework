@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
-	pkgPermission "github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/decoder"
@@ -55,11 +55,11 @@ func (suite *UserRoleUpdateTestSuite) SetupTest() {
 	}
 
 	err := database.NewTx(suite.runtime.Rdbms.Database()).Transaction(func(tx *gorm.DB) error {
-		if err := pkgPermission.Create(tx, permissions); err != nil {
+		if err := permission.Create(tx, permissions); err != nil {
 			return err
 		}
 
-		if err := pkgPermission.CreateRole(tx, roles); err != nil {
+		if err := permission.CreateRole(tx, roles); err != nil {
 			return err
 		}
 
@@ -77,16 +77,16 @@ func (suite *UserRoleUpdateTestSuite) SetupTest() {
 				PermissionId: permissions[1].Id,
 			},
 		}
-		if err := pkgPermission.CreateRolePermission(tx, rolePermissions); err != nil {
+		if err := permission.CreateRolePermission(tx, rolePermissions); err != nil {
 			return err
 		}
 
 		userRole.RoleId = roles[0].Id
-		if err := pkgPermission.CreateUserRole(tx, userRole); err != nil {
+		if err := permission.CreateUserRole(tx, userRole); err != nil {
 			return err
 		}
 
-		if err := pkgPermission.CreateCasbinRule(tx, casbinRules); err != nil {
+		if err := permission.CreateCasbinRule(tx, casbinRules); err != nil {
 			return err
 		}
 

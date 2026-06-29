@@ -13,8 +13,8 @@ import (
 	"go.uber.org/fx/fxevent"
 
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/migration/rdbms/seeder"
-	appregistrar "github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
-	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 )
 
 type RdbmsSeederRunner struct {
@@ -59,14 +59,14 @@ func main() {
 		}),
 		fx.Supply(booter.NewDefaultConfig()),
 		fx.Provide(
-			appregistrar.NewConfigLoader,
-			appregistrar.NewDatabaseConfig,
-			appregistrar.NewDatabase,
-			appregistrar.NewLoggerConfigs,
-			appregistrar.NewLoggers,
-			appregistrar.NewAuthenticationConfig,
-			appregistrar.NewAuthenticator,
-			appregistrar.NewCasbinEnforcer,
+			registrar.NewConfigLoader,
+			registrar.NewDatabaseConfig,
+			registrar.NewDatabase,
+			registrar.NewLoggerConfigs,
+			registrar.NewLoggers,
+			registrar.NewAuthenticationConfig,
+			registrar.NewAuthenticator,
+			registrar.NewCasbinEnforcer,
 			seeder.NewHttpApiSeeder,
 			seeder.NewSeederExecutor,
 			NewRdbmsSeederRunner,

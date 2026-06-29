@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	internalhttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
-	appregistrar "github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
-	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/fx"
@@ -58,15 +58,15 @@ func main() {
 		fx.Supply(booter.NewDefaultConfig()),
 		route.NewModule(),
 		fx.Provide(
-			internalhttp.NewEngine,
-			appregistrar.NewConfigLoader,
-			appregistrar.NewAuthenticationConfig,
-			appregistrar.NewAuthenticator,
-			appregistrar.NewDatabaseConfig,
-			appregistrar.NewDatabase,
-			appregistrar.NewLoggerConfigs,
-			appregistrar.NewLoggers,
-			appregistrar.NewCasbinEnforcer,
+			http.NewEngine,
+			registrar.NewConfigLoader,
+			registrar.NewAuthenticationConfig,
+			registrar.NewAuthenticator,
+			registrar.NewDatabaseConfig,
+			registrar.NewDatabase,
+			registrar.NewLoggerConfigs,
+			registrar.NewLoggers,
+			registrar.NewCasbinEnforcer,
 			NewHttpRouteRunner,
 		),
 		fx.Populate(&runner),

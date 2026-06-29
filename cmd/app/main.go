@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	internalhttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/scheduler"
@@ -30,7 +30,7 @@ func main() {
 		route.NewModule(),
 		scheduler.NewModule(),
 		fx.Invoke(
-			func(*internalhttp.Server) {},
+			func(*http.Server) {},
 		),
 	).Run()
 }

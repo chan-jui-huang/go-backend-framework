@@ -2,14 +2,14 @@ package seeder
 
 import (
 	"github.com/casbin/casbin/v3"
-	httpapi "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/http_api"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/permission"
 	adminuser "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/admin/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/system"
 	usercontroller "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
-	adminroute "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/admin"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/admin"
 	userroute "github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
 	pkgpermission "github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
@@ -54,7 +54,7 @@ func (s *HttpApiSeeder) Run(tx *gorm.DB) error {
 	engine := gin.New()
 	authentication := middleware.NewAuthenticationMiddleware(s.logger, s.authenticator)
 	authorization := middleware.NewAuthorizationMiddleware(s.logger, s.casbinEnforcer)
-	adminRouter := adminroute.NewRouter(
+	adminRouter := admin.NewRouter(
 		engine, authentication, authorization,
 		httpapi.NewSearchHandler(s.database, s.logger),
 		permission.NewCreateHandler(s.database, s.casbinEnforcer, s.logger),

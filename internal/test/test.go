@@ -3,29 +3,29 @@ package test
 import (
 	"testing"
 
-	testruntime "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/runtime"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/runtime"
 )
 
-type Runtime = testruntime.Runtime
-type RuntimeOptions = testruntime.RuntimeOptions
-type MockServices = testruntime.MockServices
+type Runtime = runtime.Runtime
+type RuntimeOptions = runtime.RuntimeOptions
+type MockServices = runtime.MockServices
 
 func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
-	return testruntime.NewRuntime(tb, options)
+	return runtime.NewRuntime(tb, options)
 }
 
 func NewBaseRuntime(tb testing.TB) *Runtime {
-	return testruntime.NewBaseRuntime(tb)
+	return runtime.NewBaseRuntime(tb)
 }
 
 func NewRdbmsRuntime(tb testing.TB) *Runtime {
-	return testruntime.NewRdbmsRuntime(tb)
+	return runtime.NewRdbmsRuntime(tb)
 }
 
 func NewClickhouseRuntime(tb testing.TB) *Runtime {
-	return testruntime.NewClickhouseRuntime(tb)
+	return runtime.NewClickhouseRuntime(tb)
 }
 
 func NewFullRuntime(tb testing.TB) *Runtime {
-	return testruntime.NewFullRuntime(tb)
+	return runtime.NewFullRuntime(tb)
 }

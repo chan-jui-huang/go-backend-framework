@@ -6,6 +6,12 @@ import "go.uber.org/fx"
 func NewModule() fx.Option {
 	return fx.Module(
 		"http.controller.user",
-		fx.Provide(NewGetMeHandler, NewLoginHandler, NewRegisterHandler, NewUpdateHandler, NewUpdatePasswordHandler),
+		fx.Provide(
+			NewGetMeHandler,
+			NewLoginHandler,
+			NewRegisterHandler,
+			NewUpdateHandler,
+			NewUpdatePasswordHandler,
+		),
 	)
 }

@@ -15,13 +15,13 @@ import (
 	"go.uber.org/fx/fxevent"
 	"gorm.io/gorm"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/casbin/gorm-adapter/v3"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/database"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/model"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/permission"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/pkg/user"
-	appregistrar "github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
-	booter "github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
+	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter"
 )
 
 type permissionSeeder struct {
@@ -259,12 +259,12 @@ func main() {
 		}),
 		fx.Supply(booter.NewDefaultConfig()),
 		fx.Provide(
-			appregistrar.NewConfigLoader,
-			appregistrar.NewDatabaseConfig,
-			appregistrar.NewDatabase,
-			appregistrar.NewLoggerConfigs,
-			appregistrar.NewLoggers,
-			appregistrar.NewCasbinEnforcer,
+			registrar.NewConfigLoader,
+			registrar.NewDatabaseConfig,
+			registrar.NewDatabase,
+			registrar.NewLoggerConfigs,
+			registrar.NewLoggers,
+			registrar.NewCasbinEnforcer,
 			NewPermissionSeederRunner,
 		),
 		fx.Populate(&runner),

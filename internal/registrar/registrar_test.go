@@ -15,7 +15,7 @@ import (
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/database"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	redisClient "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -36,7 +36,7 @@ type registrarDependencies struct {
 	DatabaseConfig   *database.Config
 	ClickhouseConfig *clickhouse.Config
 	Database         *gorm.DB
-	Redis            *redisClient.Client
+	Redis            *redis.Client
 	Logger           *zap.Logger
 	Authenticator    *authentication.Authenticator
 	CasbinEnforcer   *casbin.SyncedCachedEnforcer

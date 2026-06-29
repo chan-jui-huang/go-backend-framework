@@ -8,17 +8,17 @@ import (
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/controller/user"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/response"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fake"
-	domainfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
-	httpfixture "github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/http"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/domain"
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/fixture/http"
 	"github.com/mitchellh/mapstructure"
 )
 
 type UserAPI struct {
-	http  *httpfixture.Handler
-	users *domainfixture.UserFixture
+	http  *http.Handler
+	users *domain.UserFixture
 }
 
-func NewUserAPI(httpHandler *httpfixture.Handler, users *domainfixture.UserFixture) *UserAPI {
+func NewUserAPI(httpHandler *http.Handler, users *domain.UserFixture) *UserAPI {
 	return &UserAPI{
 		http:  httpHandler,
 		users: users,
