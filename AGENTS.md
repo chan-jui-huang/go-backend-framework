@@ -8,13 +8,13 @@ This document guides AI agents and contributors working in this repository. It d
 - `cmd/kit`: Helper CLIs (`jwt`, `http_route`, `rdbms_seeder`, `permission_seeder`).
 - `cmd/template`: Minimal `fx` bootstrap executable that wires registrar providers and invokes; useful for scaffolding.
 - `internal`: Domain logic and supporting modules with colocated tests (`*_test.go`).
-  - `deps/`: Typed accessors for config and service dependencies populated during `fx` bootstrap.
+  - `config/`: Internal configuration helpers and setup.
   - `http/`: Gin HTTP stack — `controller/`, `middleware/`, `response/`, `route/`, `server.go`.
   - `scheduler/`: Background jobs (cron-like tasks) and example jobs under `job/`.
-  - `registrar/`: `fx` providers, lifecycle hooks, and dependency registration used during bootstrap.
+  - `registrar/`: `fx` providers, lifecycle hooks, and infrastructure dependency registration used by app/CLI/test bootstraps.
   - `pkg/`: Project-specific packages (database, models, permission logic, user domain helpers, etc.).
   - `migration/`: Database migrations split into `rdbms/` and `clickhouse/` trees.
-  - `test/`: `fx`-based test runtime plus fixtures under `runtime/`, `fixture/{db,domain,http,scenario}/`, and `fake/`.
+  - `test/`: `fx`-based test runtime plus config, runtime mock service extension points, fixtures under `fixture/{db,domain,http,scenario}/`, and `fake/`.
 - `docs`: Swagger outputs (`swagger.json|yaml`, `docs.go`).
 - `deployment/`: Docker assets (e.g., `deployment/docker/`).
 - `storage`: Runtime artifacts such as `storage/log/access.log` and `storage/log/app.log`.
@@ -32,6 +32,14 @@ This document guides AI agents and contributors working in this repository. It d
 
 **Foundation:** The framework is built on **[go-backend-package](https://github.com/chan-jui-huang/go-backend-package)** with 12 modular packages and zero cross-dependencies. For comprehensive architectural details, refer to: **[go-backend-package AGENTS.md](https://github.com/chan-jui-huang/go-backend-package/blob/main/AGENTS.md)**
 
+The application runtime is composed through explicit `fx` modules:
+- `cmd/app/main.go` supplies the booter config and composes `registrar.NewModule()`, `route.NewModule()`, and `scheduler.NewModule()`.
+- `internal/registrar/module.go` owns infrastructure providers and lifecycle hooks such as config, HTTP server, storage clients, logging, auth, validation, and Casbin.
+- `internal/http/route/module.go` owns HTTP route assembly and imports controller domain modules plus middleware module wiring.
+- Controller packages expose `NewModule()` functions for their handlers; add new controller dependencies through the package module instead of global accessors.
+- `internal/scheduler/module.go` owns scheduler lifecycle. Jobs must be registered from `internal/scheduler/job/module.go` into the `group:"scheduler_jobs"` group.
+- Pass runtime dependencies explicitly through constructors and `fx.Provide`/`fx.Invoke`; keep dependency ownership visible in the relevant module file.
+
 ### Benefits of This Architecture
 
 - **Reusability**: Business logic in `internal/pkg/` can be called from APIs, schedulers, CLI tools, or future interfaces
@@ -40,7 +48,7 @@ This document guides AI agents and contributors working in this repository. It d
 - **Consistency**: All interfaces use the same validated business logic
 
 ## Build, Run, and Tooling
-- `make`: Compiles the main service and helper binaries with the `jsoniter` build tag enabled.
+- `make`: Builds helper CLIs and `bin/app`; the app build uses the `jsoniter` build tag.
 - `make all`: Builds `bin/app` alongside helper CLIs.
 - `make run`: Runs the service locally with the race detector enabled.
 - `go run cmd/app/*`: Spins up the API without the Makefile; use `make air` for hot reloading (requires the `air` tool).
@@ -87,11 +95,13 @@ func main() {
 ```
 
 ## API Endpoint Workflow
-When adding or modifying API endpoints, invoke and follow `$create-api-endpoint` from `.agents/skills/create-api-endpoint/SKILL.md`. That skill is the source of truth for controller files, `internal/pkg` business logic, routes, permissions, Swagger contracts, canonical HTTP errors, logging, and controller tests.
+When adding or modifying API endpoints, invoke and follow `$create-api-endpoint` from `.agents/skills/create-api-endpoint/SKILL.md`. Use the skill as a workflow guide, not as a replacement for current repository patterns.
 
 ## Development Guidelines
 - Keep changes minimal and localized; avoid unrelated refactors.
 - Favor composition over duplication; reuse helpers under `internal/pkg/` and existing shared utilities.
+- Add new infrastructure/service dependencies in `internal/registrar/module.go` and inject them explicitly into consumers. Route/controller wiring belongs in the relevant `module.go`; scheduler job wiring belongs in `internal/scheduler/job/module.go`.
+- Whenever you introduce a new mockable service for tests, add it to `internal/test/runtime/mock_services.go` so `RuntimeOptions.MockServices` can override external boundaries without touching production wiring.
 
 ## Testing Guidelines
 - Test framework: standard `testing`; `testify` is available for assertions.
@@ -108,8 +118,8 @@ When adding or modifying API endpoints, invoke and follow `$create-api-endpoint`
 - Validate configuration via `make run` and integration tests before deployment.
 
 ## Helper CLIs (under `cmd/kit`)
-- `jwt`: Issue and inspect JWTs for environment-specific usage.
-- `http_route`: Generate or lint HTTP route scaffolding.
+- `jwt`: Generate an Ed25519 JWT key pair and update `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` in the selected env file.
+- `http_route`: Print registered Gin routes after attaching the current route modules.
 - `rdbms_seeder`: Seed relational databases with base data.
 - `permission_seeder`: Seed Casbin roles, permissions, and grouping policies.
 
