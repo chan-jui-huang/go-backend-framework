@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	pkghttp "github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/registrar"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/test/config"
@@ -73,7 +74,7 @@ func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 			registrar.NewCasbinEnforcer,
 			form.NewDecoder,
 			modifiers.New,
-			http.NewEngine,
+			pkghttp.NewEngine,
 			db.NewRdbmsMigration,
 			db.NewClickhouseMigration,
 			domain.NewUserFixture,
