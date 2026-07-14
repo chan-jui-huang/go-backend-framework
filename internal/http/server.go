@@ -13,12 +13,11 @@ import (
 )
 
 type Server struct {
-	server            *http.Server
-	config            ServerConfig
-	logger            *zap.Logger
-	engine            *gin.Engine
-	globalMiddlewares *middleware.GlobalMiddlewares
-	routers           []route.Router
+	server  *http.Server
+	config  ServerConfig
+	logger  *zap.Logger
+	engine  *gin.Engine
+	routers []route.Router
 }
 
 type ServerConfig struct {
@@ -26,25 +25,27 @@ type ServerConfig struct {
 	GracefulShutdownTtl time.Duration
 }
 
-func NewEngine() (*gin.Engine, error) {
+func NewEngine(globalMiddlewares *middleware.GlobalMiddlewares) (*gin.Engine, error) {
 	engine := gin.New()
 	engine.RemoteIPHeaders = []string{
 		"X-Forwarded-For",
 		"X-Real-IP",
 	}
-	err := engine.SetTrustedProxies([]string{
+	if err := engine.SetTrustedProxies([]string{
 		"0.0.0.0/0",
 		"::/0",
-	})
+	}); err != nil {
+		return nil, err
+	}
+	globalMiddlewares.Attach(engine)
 
-	return engine, err
+	return engine, nil
 }
 
 func NewServer(
 	config ServerConfig,
 	logger *zap.Logger,
 	engine *gin.Engine,
-	globalMiddlewares *middleware.GlobalMiddlewares,
 	routers []route.Router,
 ) *Server {
 	srv := &Server{
@@ -52,18 +53,16 @@ func NewServer(
 			Addr:              config.Address,
 			ReadHeaderTimeout: 30 * time.Minute,
 		},
-		config:            config,
-		logger:            logger,
-		engine:            engine,
-		globalMiddlewares: globalMiddlewares,
-		routers:           routers,
+		config:  config,
+		logger:  logger,
+		engine:  engine,
+		routers: routers,
 	}
 
 	return srv
 }
 
 func (srv *Server) Run() {
-	srv.globalMiddlewares.Attach(srv.engine)
 	for _, router := range srv.routers {
 		router.AttachRoutes()
 	}

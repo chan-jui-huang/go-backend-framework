@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http"
-	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/middleware"
 	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/route"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/booter/config"
 	"github.com/gin-gonic/gin"
@@ -22,11 +21,10 @@ func NewHttpServerConfig(loader *config.Loader) *http.ServerConfig {
 type NewHttpServerParams struct {
 	fx.In
 
-	Config            *http.ServerConfig
-	Logger            *zap.Logger
-	Engine            *gin.Engine
-	GlobalMiddlewares *middleware.GlobalMiddlewares
-	Routers           []route.Router `group:"routers"`
+	Config  *http.ServerConfig
+	Logger  *zap.Logger
+	Engine  *gin.Engine
+	Routers []route.Router `group:"routers"`
 }
 
 func NewHttpServer(params NewHttpServerParams) *http.Server {
@@ -34,7 +32,6 @@ func NewHttpServer(params NewHttpServerParams) *http.Server {
 		*params.Config,
 		params.Logger,
 		params.Engine,
-		params.GlobalMiddlewares,
 		params.Routers,
 	)
 }
