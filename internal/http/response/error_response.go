@@ -1,13 +1,11 @@
 package response
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/chan-jui-huang/go-backend-framework/v3/internal/http/requestlog"
 	"github.com/chan-jui-huang/go-backend-package/v2/pkg/stacktrace"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -81,30 +79,10 @@ func (er *ErrorResponse) StatusCode() int {
 func (er *ErrorResponse) MakeLogFields(c *gin.Context, fields ...zap.Field) []zap.Field {
 	req := c.Request
 
-	var requestBody []byte
 	var internalFields []zap.Field
-	if bodyValue, ok := c.Get(gin.BodyBytesKey); ok {
-		if bodyBytes, ok := bodyValue.([]byte); ok {
-			requestBody = bodyBytes
-		}
-	} else if req.Body != nil {
-		body, err := io.ReadAll(req.Body)
-		if err != nil {
-			internalFields = append(internalFields, zap.NamedError("request_body_read_error", err))
-		} else {
-			requestBody = body
-		}
-	}
-
-	if requestBody != nil && json.Valid(requestBody) {
-		buffer := bytes.NewBuffer(make([]byte, 0, len(requestBody)))
-		err := json.Compact(buffer, requestBody)
-		if err != nil {
-			internalFields = append(internalFields, zap.NamedError("request_body_compact_error", err))
-			requestBody = nil
-		} else {
-			requestBody = buffer.Bytes()
-		}
+	requestBody, err := requestlog.Filter(c, requestlog.ErrorLog)
+	if err != nil {
+		internalFields = append(internalFields, zap.NamedError("request_body_filter_error", err))
 	}
 
 	debug := er.debug
@@ -129,8 +107,10 @@ func (er *ErrorResponse) MakeLogFields(c *gin.Context, fields ...zap.Field) []za
 		zap.String("method", req.Method),
 		zap.String("path", req.URL.Path),
 		zap.String("query_string", req.URL.Query().Encode()),
-		zap.ByteString("request_body", requestBody),
 		zap.Strings("stacktrace", stacktraceValue),
+	}
+	if len(requestBody) > 0 {
+		baseFields = append(baseFields, zap.ByteString("request_body", requestBody))
 	}
 	baseFields = append(baseFields, internalFields...)
 	baseFields = append(baseFields, fields...)
