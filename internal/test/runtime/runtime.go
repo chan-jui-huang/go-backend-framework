@@ -40,6 +40,7 @@ type RuntimeOptions struct {
 
 func NewRuntime(tb testing.TB, options RuntimeOptions) *Runtime {
 	tb.Helper()
+	tb.Setenv("ENV", "test")
 
 	files := config.NewFiles("../../..")
 	config.LoadEnv(files)
