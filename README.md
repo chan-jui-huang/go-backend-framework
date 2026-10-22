@@ -52,7 +52,7 @@ Before running the application, install the following:
 |------------|---------|
 | **MySQL** (v8.0+) or **PostgreSQL** (v17+) | Production database |
 | **SQLite** (v3.0+) | Running tests locally |
-| **Go** (v1.25.4+) | Language runtime |
+| **Go** (v1.27.3+) | Language runtime |
 | **Make** | Build automation |
 
 ### 3. Configure Environment
