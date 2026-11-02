@@ -60,7 +60,7 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/MirrexOne/unqueryvet v1.5.4 // indirect
-	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
+	github.com/OpenPeeDeeP/depguard/v2 v2.3.0 // indirect
 	github.com/air-verse/air v1.67.4 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
 	github.com/alecthomas/go-check-sumtype v0.5.1-0.20260828200218-ae6904d28606 // indirect
@@ -76,6 +76,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
 	github.com/bep/golibsass v1.2.0 // indirect
+	github.com/bep/helpers v0.12.0 // indirect
 	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
@@ -121,13 +122,15 @@ require (
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
-	github.com/ghostiam/protogetter v1.0.1 // indirect
+	// Upstream compatibility fix for glob v1.
+	github.com/ghostiam/protogetter v1.0.2-0.20261002155919-c1c4343d6558 // indirect
 	github.com/gin-contrib/sse v1.1.2 // indirect
 	github.com/glebarez/go-sqlite v1.23.0 // indirect
 	github.com/glebarez/sqlite v1.11.0 // indirect
 	github.com/go-critic/go-critic v0.15.0 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/go-openapi/jsonpointer v1.0.2 // indirect
 	github.com/go-openapi/jsonreference v1.0.3 // indirect
 	github.com/go-openapi/spec v1.0.1 // indirect
@@ -150,14 +153,13 @@ require (
 	github.com/go-toolsmith/typep v1.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
-	// golangci-lint's depguard and protogetter still require glob.Glob.
-	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gobwas/glob v1.1.0 // indirect
 	github.com/goccy/go-json v0.11.2 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/godoc-lint/godoc-lint v0.11.4 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/gohugoio/hashstructure v1.1.0 // indirect
-	github.com/gohugoio/hugo v0.165.0 // indirect
+	github.com/gohugoio/hugo v0.169.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
@@ -276,6 +278,7 @@ require (
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/segmentio/go-camelcase v0.0.0-20160726192923-7085f1e3c734 // indirect
 	github.com/segmentio/go-snakecase v1.2.0 // indirect
+	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/sethvargo/go-retry v0.5.0 // indirect
 	github.com/shopspring/decimal v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
@@ -325,6 +328,8 @@ require (
 	go.augendre.info/fatcontext v0.10.1 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.9.2 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.45.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
@@ -336,11 +341,13 @@ require (
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/telemetry v0.0.0-20261010193011-f71dc92da45e // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/vuln v1.9.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20261019180522-ce908d29299b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b // indirect
 	google.golang.org/grpc v1.84.0 // indirect
@@ -360,6 +367,7 @@ require (
 	mvdan.cc/gofumpt v0.12.0 // indirect
 	mvdan.cc/unparam v0.0.0-20261011093844-7a2c2c0b7aa6 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
+	software.sslmate.com/src/go-pkcs12 v0.7.2 // indirect
 )
 
 tool (
@@ -367,4 +375,5 @@ tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/pressly/goose/v3/cmd/goose
 	github.com/swaggo/swag/cmd/swag
+	golang.org/x/vuln/cmd/govulncheck
 )
