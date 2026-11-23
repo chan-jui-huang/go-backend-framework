@@ -28,7 +28,7 @@ func NewAuthorizationMiddleware(
 func (m *AuthorizationMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId := c.GetUint("user_id")
-		ok, err := m.enforcer.Enforce(strconv.FormatUint(uint64(userId), 10), c.Request.URL.Path, c.Request.Method)
+		ok, err := m.enforcer.Enforce(strconv.FormatUint(uint64(userId), 10), c.FullPath(), c.Request.Method)
 		if err != nil {
 			errResp := response.NewErrorResponse(response.Forbidden, errors.WithStack(err), nil, response.DebugMode(c))
 			m.logger.Warn(response.Forbidden, errResp.MakeLogFields(c)...)

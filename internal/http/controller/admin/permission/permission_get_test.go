@@ -119,6 +119,28 @@ func (suite *PermissionGetTestSuite) TestAuthorizationFailed() {
 	suite.Equal(response.MessageToCode[response.Forbidden], respBody.Code)
 }
 
+func (suite *PermissionGetTestSuite) TestWildcardPolicyDoesNotGrantAccess() {
+	admin := suite.runtime.Users.GetByEmail(fake.Admin().Email)
+	enforcer := suite.runtime.Rdbms.Enforcer()
+	added, err := enforcer.AddPolicy("wildcard-permission-read", "/api/admin/permission/*", "GET")
+	suite.Require().NoError(err)
+	suite.Require().True(added)
+	added, err = enforcer.AddGroupingPolicy(fmt.Sprint(admin.Id), "wildcard-permission-read")
+	suite.Require().NoError(err)
+	suite.Require().True(added)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/admin/permission/%d", suite.permission.Id), nil)
+	suite.runtime.HTTP.AddBearerToken(req, suite.runtime.AdminAPI.CreateAccessToken())
+	resp := httptest.NewRecorder()
+	suite.runtime.HTTP.ServeHTTP(resp, req)
+
+	suite.Require().Equal(http.StatusForbidden, resp.Code, resp.Body.String())
+	var respBody response.ErrorResponse
+	suite.Require().NoError(json.Unmarshal(resp.Body.Bytes(), &respBody))
+	suite.Equal(response.Forbidden, respBody.Message)
+	suite.Equal(response.MessageToCode[response.Forbidden], respBody.Code)
+}
+
 func (suite *PermissionGetTestSuite) TearDownTest() {
 	suite.runtime.Close()
 }

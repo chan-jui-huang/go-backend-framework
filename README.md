@@ -185,6 +185,12 @@ See `cmd/app/main.go` for the canonical `fx` wiring example.
 | **Authorization**            | Casbin RBAC policies seeded via `cmd/kit/permission_seeder`                                 |
 | **Logging**                  | Zap structured logging with rotation to `storage/log/`                                      |
 
+Casbin policy objects use the full route template registered in Gin. For example, a request to
+`GET /api/admin/permission/123` matches the policy object `/api/admin/permission/:id` and action `GET`.
+Before upgrading, review custom policies that use wildcard patterns, concrete IDs, or different parameter
+names. Preserve any per-ID restrictions in resource-level authorization before granting access to an
+entire route template.
+
 ---
 
 ## Development Setup
